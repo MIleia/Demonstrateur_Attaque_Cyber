@@ -23,6 +23,38 @@
     if (isset($_POST['action']) && $_POST['action'] == "load_users_data") {
         load_users_data($conn);
     }
+
+
+    session_start();
+
+
+    // Get the user's ID
+    function loginUser($conn, $email, $password) {
+        $stmt = $conn->prepare("SELECT id, password FROM users WHERE mail = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
+            $user = $result->fetch_assoc();
+            
+            // Vérifier le mot de passe
+            if (password_verify($password, $user["password"])) {
+                $_SESSION["user_id"] = $user["id"];
+                echo json_encode(["success" => true]);
+                return;
+            }
+        }
+
+        echo json_encode(["success" => false, "message" => "Identifiants incorrects."]);
+    }
+
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
+        if ($_POST["action"] === "login" && isset($_POST["email"]) && isset($_POST["password"])) {
+            loginUser($conn, $_POST["email"], $_POST["password"]);
+        }
+    }
+
 ?>
 
 
