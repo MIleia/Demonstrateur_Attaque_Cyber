@@ -1,20 +1,39 @@
-// Event listener pour le bouton parcourir
-document.getElementById('browse-btn').addEventListener('click', function() {
-    document.getElementById('file-upload').click();
-});
-
-// Fonction de recherche (si on veut ajouter un filtre simple)
-document.getElementById('search').addEventListener('input', function() {
-    let searchQuery = document.getElementById('search').value.toLowerCase();
-    let playlists = document.querySelectorAll('.playlists li');
-
-    playlists.forEach(function(playlist) {
-        if (playlist.textContent.toLowerCase().includes(searchQuery)) {
-            playlist.style.display = 'block';
+document.addEventListener('DOMContentLoaded', function() {
+    // Faire une requête pour afficher tous les songs de la bdd
+    fetch('../lib/request.php?action=getSongs')
+    .then(response => response.text())
+    .then(text => {
+        console.log('Réponse brute du serveur :', text);
+        return JSON.parse(text);
+    })
+    .then(data => {
+        if (data.success) {
+            let songList = document.getElementById('song-list');
+            data.songs.forEach(song => {
+                let songElement = document.createElement('li');
+                songElement.innerText = song.title;
+                songList.appendChild(songElement);
+            });
         } else {
-            playlist.style.display = 'none';
+            console.error(data.message);
         }
-    });
+    })
+
+    // Faire une requête pour afficher les infos de l'utilisateur
+    fetch('../lib/request.php?action=getUser')
+    .then(response => response.text())
+    .then(text => {
+        console.log('Réponse brute du serveur :', text);
+        return JSON.parse(text);
+    })
+    .then(data => {
+        if (data.success) {
+            let userElement = document.getElementById('user');
+            userElement.innerText = data.user.firstname + ' ' + data.user.lastname;
+        } else {
+            console.error(data.message);
+        }
+    })
 });
 
 

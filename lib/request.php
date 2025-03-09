@@ -1,59 +1,80 @@
 <?php
     include 'database.php';
 
-    function load_users_data($conn){
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
 
-        $sql = "SELECT * FROM users";
-        $result = mysqli_query($conn, $sql);
+    $db = database::connexionBD();
 
-        // Vérifier s'il y a des résultats
-        if (mysqli_num_rows($result) > 0) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo "$row[mail] <br>";  // Affiche chaque ligne sous forme de tableau associatif
-                echo "$row[lastname] <br>";
-                echo "$row[firstname] <br>";
-                echo "$row[password] <br>";
-                echo "$row[profile_picture] <br><br>";
-            }
-        } else {
-            echo "Il n'y a pas d'utilisateurs !";
-        }
-    }
-
-    if (isset($_POST['action']) && $_POST['action'] == "load_users_data") {
-        load_users_data($conn);
+    if (!isset($db) || $db === null) {
+        die(json_encode(["success" => false, "message" => "Connexion à la base de données échouée."]));
     }
 
 
-    session_start();
-
-
-    // Get the user's ID
-    function loginUser($conn, $email, $password) {
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE mail = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
+    // function to insert a new user
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
+        if ($_POST["action"] === "register" && isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["lastname"]) && isset($_POST["firstname"])) {
+            $email = $_POST["email"];
+            $password = $_POST["password"];
+            $lastname = $_POST["lastname"];
+            $firstname = $_POST["firstname"];
+            $result = dbInsertNewUser($db, $email, $lastname, $firstname, $password);
             
-            // Vérifier le mot de passe
-            if (password_verify($password, $user["password"])) {
-                $_SESSION["user_id"] = $user["id"];
+            // Check if the email is already taken
+            if ($result === "Already") {
+                echo json_encode(["success" => false, "message" => "L'email est déjà pris."]);
+            } elseif ($result === true) {
                 echo json_encode(["success" => true]);
-                return;
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de l'inscription."]);
             }
         }
-
-        echo json_encode(["success" => false, "message" => "Identifiants incorrects."]);
     }
-
+    
+    // function to login
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
         if ($_POST["action"] === "login" && isset($_POST["email"]) && isset($_POST["password"])) {
-            loginUser($conn, $_POST["email"], $_POST["password"]);
+            $email = $_POST["email"];
+            $password = $_POST["password"];
+            $result = dbGetUser($db, $email, $password);
+            if ($result !== "error") {
+                echo json_encode(["success" => true, "user" => $result]);
+            } else {
+                echo json_encode(["success" => false, "message" => "E-mail ou mot de passe incorrect."]);
+            }
         }
     }
+
+    // function to get lastname and firstname of the user
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getUser") {
+            session_start();
+            if (isset($_SESSION['user_id'])) {
+                $result = dbGetUserInfos($db, $_SESSION['user_id']);
+                if ($result !== false) {
+                    echo json_encode(["success" => true, "user" => $result]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des informations de l'utilisateur."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Vous n'êtes pas connecté."]);
+            }
+        }
+    }
+
+    // function for print all songs
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getSongs") {
+            $result = dbGetSongs($db);
+            if ($result !== false) {
+                echo json_encode(["success" => true, "songs" => $result]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des chansons."]);
+            }
+        }
+    }
+
+    
 
 ?>
 
