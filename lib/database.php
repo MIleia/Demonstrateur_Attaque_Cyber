@@ -32,11 +32,9 @@
             $statement->bindParam(':mail', $mail);
             $statement->execute();
             $result = $statement->fetch(PDO::FETCH_ASSOC);
+            
             if (!empty($result) && password_verify($pwd, $result['password'])) {
-                // Start a session
-                session_start();
-                $_SESSION['user_id'] = $result['mail'];
-                return array($result['mail'], $result['lastname'], $result['firstname']);
+                return $result; // Retourne bien l'utilisateur
             } else {
                 return "error"; // Si le mot de passe ne correspond pas ou si l'utilisateur n'existe pas
             }
@@ -45,6 +43,7 @@
             return false;
         }
     }
+    
     
     // Check if the email is already taken
     function AlreadyUser($db, $mail) {
@@ -66,7 +65,7 @@
     }
     
     // Insert a new user in the database
-    function dbInsertNewUser($db, $mail, $lastname, $firstname, $pwd) {
+    function dbInsertNewUser($db, $mail, $lastname, $firstname, $pwd, $profile_picture) {
         try {
             // Check if the email is already taken
             if (AlreadyUser($db, $mail)) {
@@ -74,11 +73,12 @@
             }
             
             $hash = password_hash($pwd, PASSWORD_DEFAULT);
-            $stmt = $db->prepare("INSERT INTO users (mail, lastname, firstname, password) VALUES (:mail, :lastname, :firstname, :password)");
+            $stmt = $db->prepare("INSERT INTO users (mail, lastname, firstname, password, profile_picture) VALUES (:mail, :lastname, :firstname, :password, :profile_picture)");
             $stmt->bindParam(':mail', $mail);
             $stmt->bindParam(':lastname', $lastname);
             $stmt->bindParam(':firstname', $firstname);
             $stmt->bindParam(':password', $hash);
+            $stmt->bindParam(':profile_picture', $profile_picture);
             $stmt->execute();
             return true;
         } catch (PDOException $exception) {
@@ -116,7 +116,35 @@
         }
     }
     
-    
+    // Get all playlists of the user
+    function dbGetUserPlaylists($db, $mail) {
+        try {
+            $request = 'SELECT * FROM playlist WHERE mail=:mail';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':mail', $mail);
+            $statement->execute();
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
+        }
+    }
+
+    // Get all songs liked by the user
+    function dbGetLikedSongs($db, $mail) {
+        try {
+            $request = 'SELECT * FROM likes WHERE mail=:mail';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':mail', $mail);
+            $statement->execute();
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
+        }
+    }
 ?>
 
 

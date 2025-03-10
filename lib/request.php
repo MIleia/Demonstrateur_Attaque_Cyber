@@ -1,5 +1,8 @@
 <?php
+    //session_start();
+
     include 'database.php';
+
 
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
@@ -18,7 +21,8 @@
             $password = $_POST["password"];
             $lastname = $_POST["lastname"];
             $firstname = $_POST["firstname"];
-            $result = dbInsertNewUser($db, $email, $lastname, $firstname, $password);
+            $profile_picture = "../images/default_user.png";
+            $result = dbInsertNewUser($db, $email, $lastname, $firstname, $password, $profile_picture);
             
             // Check if the email is already taken
             if ($result === "Already") {
@@ -38,26 +42,13 @@
             $password = $_POST["password"];
             $result = dbGetUser($db, $email, $password);
             if ($result !== "error") {
+                // Définition des cookies pour stocker le nom et prénom (valide pour 1 jour)
+                setcookie("firstname", $result['firstname'], time() + 86400, "/");
+                setcookie("lastname", $result['lastname'], time() + 86400, "/");
+            
                 echo json_encode(["success" => true, "user" => $result]);
             } else {
                 echo json_encode(["success" => false, "message" => "E-mail ou mot de passe incorrect."]);
-            }
-        }
-    }
-
-    // function to get lastname and firstname of the user
-    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
-        if ($_GET["action"] === "getUser") {
-            session_start();
-            if (isset($_SESSION['user_id'])) {
-                $result = dbGetUserInfos($db, $_SESSION['user_id']);
-                if ($result !== false) {
-                    echo json_encode(["success" => true, "user" => $result]);
-                } else {
-                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des informations de l'utilisateur."]);
-                }
-            } else {
-                echo json_encode(["success" => false, "message" => "Vous n'êtes pas connecté."]);
             }
         }
     }
@@ -73,6 +64,54 @@
             }
         }
     }
+
+    // function for print all playlists of the user
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getPlaylists") {
+            session_start();
+            if (isset($_SESSION['user_id'])) {
+                $result = dbGetUserPlaylists($db, $_SESSION['user_id']);
+                if ($result !== false) {
+                    echo json_encode(["success" => true, "playlists" => $result]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des playlists."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
+            }
+        }
+    }
+
+    // function for print all liked songs of the user
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getLikedSongs") {
+            session_start();
+            if (isset($_SESSION['user_id'])) {
+                $result = dbGetLikedSongs($db, $_SESSION['user_id']);
+                if ($result !== false) {
+                    echo json_encode(["success" => true, "likedSongs" => $result]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des chansons likées."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     
 

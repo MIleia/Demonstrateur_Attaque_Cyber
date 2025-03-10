@@ -21,7 +21,7 @@ CREATE TABLE users (
     mail            VARCHAR(100) NOT NULL,
     lastname        VARCHAR(50) NOT NULL,
     firstname       VARCHAR(50) NOT NULL,
-    password        VARCHAR(255) NOT NULL, -- Augmenté pour hashage sécurisé
+    password        VARCHAR(255) NOT NULL,
     profile_picture VARCHAR(255),
     CONSTRAINT users_PK PRIMARY KEY (mail)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
