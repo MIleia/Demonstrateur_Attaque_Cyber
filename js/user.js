@@ -1,15 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Ajout du nom et du prenom de l'utilisateur connecté avec cookie
     // Récupération du prénom et du nom à partir des cookies
+
+    
     let firstname = getCookie('firstname');
     let lastname = getCookie('lastname');
+    
+    //let username = getCookie('username');
 
     // Affichage du nom et prénom si les cookies existent
     if (firstname && lastname) {
         let userNameElement = document.getElementById('user-name');
         userNameElement.textContent = `${firstname} ${lastname}`;
+        //userNameElement.textContent = `${username}`;
     } else {
-        console.log("Nom et prénom introuvables.");
+        console.log("Nom d'utilisateur introuvable.");
     }
 
     // Récupération des playlists de l'utilisateur
@@ -70,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
                         <div class="card-content">
                             <h3 class="card-title">${song.name}</h3>
-                            <h3 class="card-singer">Artiste : ${song.artist}</h3>
+                            <h3 class="card-singer">${song.artist}</h3>
                         </div>
                     `;
                     likedSongsElement.appendChild(songElement);
@@ -150,8 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 songElement.innerHTML = `
                     <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
                     <h3 class="card-title">${song.name}</h3>
-                    <h3 class="card-album">Album : ${song.album}</h3>
-                    <h3 class="card-singer">Artiste : ${song.artist}</h3>
+                    <h3 class="card-album">${song.album}</h3>
+                    <h3 class="card-singer">${song.artist}</h3>
                     <h3 class="card-play">
                         <button class="play-button" data-index="${songsList.indexOf(song)}">▶️</button>
                     </h3>

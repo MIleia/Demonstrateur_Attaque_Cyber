@@ -1,206 +1,186 @@
-
+/* Global */
 * {
     margin: 0;
-    padding: 1px;
+    padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
+/* Fond dynamique */
 body {
-    margin: 0px;
-    padding: 0px;
-    background-color:rgb(87, 190, 185) ;
-    box-sizing: border-box;
-    padding-bottom: 7.5vh; /* Même hauteur que ton footer */
-}
-
-/*
-.profile {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-
-.search-container {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.search-container input {
-    width: 80%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
-
-
-.playlists {
-    margin-bottom: 20px;
-}
-
-.playlists h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.playlists ul {
-    list-style: none;
-}
-
-.playlists li {
-    background-color: #f0f0f0;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.playlists li:hover {
-    background-color: #e0e0e0;
-}
-
-.upload-container {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-#browse-btn {
-    background-color: #0077b5;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    background-size: 200% 200%;
+    animation: gradientBG 6s infinite alternate;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
+    padding-bottom: 8vh;
 }
 
-#browse-btn:hover {
-    background-color: #005f8d;
+@keyframes gradientBG {
+    0% { background-position: left top; }
+    100% { background-position: right bottom; }
 }
-*/
 
-.header{
-    
+/* Header */
+.header {
+    margin-top: 15px;
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    margin-left: 2.5%;
-    margin-right: 5%;
-}
-.playlists{
-    display: flex;
-    flex-direction: row;
-    margin-left: 2.5%;
-}
-.musique{
-    display: flex;
-    flex-direction: column;
-}
-h2{
-    font-size: 36px;  
-}
-h3{
-    margin-left: 5%;
-    font-size: 24px;
+    align-items: center;
+    padding: 20px 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    
+    z-index: 1;
 }
 
+/* Texte "Bienvenue, Nom Prénom" */
+.profile-user h2 {
+    font-size: 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    margin: 20px 0;
+}
 
-/*----------card playlist-------------*/
+/* Barre de recherche */
+.search-container-user {
+    margin-top: 30px;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+
+}
+
+.search-container-user input {
+    width: 320px;
+    padding: 12px;
+    border-radius: 50px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transition: 0.3s ease;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+}
+
+.search-container-user input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-container-user input:focus {
+    background: white;
+    color: black;
+    box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Image de profil */
+.profile-picture {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover;
+    margin-left: 20px;
+    box-shadow: 0px 2px 8px rgba(255, 255, 255, 0.3);
+    transition: 0.3s ease-in-out;
+}
+
+.profile-picture:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 2px 12px rgba(255, 255, 255, 0.5);
+}
+
+/* Titres */
+h2, h3 {
+    text-align: center;
+    margin: 40px 0 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Playlists */
+.playlists {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 40px;
+}
 
 .card-playlist {
-    margin: 10px;
-    width: 200px;
-    height: 150px;
-    background: #ffffff;
-    border-radius: 10px;
-
+    width: 250px;
+    height: 250px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
-    justify-content:space-around ;
     align-items: center;
-
-    overflow: hidden;
-    text-align: center;
-    color: rgb(0, 0, 0);
-    transition: transform 0.3s ease, background 0.3s ease;
+    justify-content: center;
     cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
 }
 
 .card-playlist:hover {
-    transform: scale(1.02);
-    background: #c2c2c2;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
-/* Image de la carte */
-.card-playlist > .card-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
+.card-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 12px;
 }
 
-/* Titre */
-.card-playlist > .card-title {
-    font-size: 24px;
-    font-weight: bold;
+/* Musiques - Affichage élargi */
+.musique {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 50px;
 }
-
-
-/*----------card musique-------------*/
 
 .card-musique {
-    margin: 10px;
-    width: 95%;
-    height: 80px;
-    background: #ffffff;
-    border-radius: 10px;
-    align-self: center;
-    
-
-
+    width: 100%;
+    max-width: 900px; /* Élargi */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
     display: flex;
-    flex-direction: row;
-    justify-content:space-around ;
     align-items: center;
-
-    overflow: hidden;
-    text-align: center;
-    color: rgb(0, 0, 0);
-    transition: transform 0.3s ease, background 0.3s ease;
+    justify-content: space-between;
     cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card-musique:hover {
     transform: scale(1.02);
-    background: #c2c2c2;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
-/* Image de la carte */
-.card-musique > .card-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-}
-
-/* Titre */
-.card-musique > .card-title {
-    font-size: 24px;
+.card-title {
+    font-size: 22px;
     font-weight: bold;
 }
 
-/*----------runner-------------*/
-
+/* Footer Musique */
 .music-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
-    height: 7.5%;
-    background: #1e1e1e;
-    color: white;
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    padding: 10px 20px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    justify-content: space-between;
+    padding: 15px;
+    backdrop-filter: blur(5px);
 }
 
 .music-info {
@@ -209,22 +189,22 @@ h3{
 }
 
 .music-info img {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 8px;
     margin-right: 10px;
 }
 
 .music-controls {
     display: flex;
-    gap: 15px;
+    gap: 12px;
 }
 
 .music-controls button {
     background: none;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
     transition: 0.3s;
 }
@@ -233,17 +213,65 @@ h3{
     color: #f1c40f;
 }
 
+/* Boutons améliorés */
+.like-button, .add-to-playlist-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-/*----------menu bas droit-------------*/
+.like-button:hover {
+    color: red;
+}
 
+.add-to-playlist-button:hover {
+    color: #1db954;
+}
+
+/* Barre de progression */
+.progress-bar {
+    width: 60%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: '';
+    width: 20%;
+    height: 100%;
+    background: #f1c40f;
+    position: absolute;
+    left: 0;
+    animation: progressAnim 5s linear infinite;
+}
+
+@keyframes progressAnim {
+    from { left: 0; }
+    to { left: 100%; }
+}
+
+/* Image retour accueil */
 .house-image {
     position: fixed;
-    bottom: 7.5%;
-    right: 20px;
-    opacity: 0.5;
+    bottom: 14%;
+    right: 25px;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.house-image:hover {
+    opacity: 1;
 }
 
 .house-image img {
-    width: 80px;
+    width: 100px;
     height: 100px;
 }
+
+

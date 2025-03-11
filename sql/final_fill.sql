@@ -3,9 +3,9 @@ USE musicDB;
 -- Insertion des utilisateurs (y compris l'admin)
 INSERT INTO users (mail, lastname, firstname, password, profile_picture) VALUES
 ('admin@admin.com', 'Admin', 'admin', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
-('user1@user.com', 'Doe', 'John', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
-('user2@user.com', 'Smith', 'Jane', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
-('user3@user.com', 'Taylor', 'Chris', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png');
+('user1@user.com', 'Franky', 'Quentin', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
+('user2@user.com', 'Esteban', 'Fanjul', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
+('user3@user.com', 'Jean', 'François', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png');
 
 -- Ajout de l'administrateur
 INSERT INTO admin (mail) VALUES

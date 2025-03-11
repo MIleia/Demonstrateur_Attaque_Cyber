@@ -9,38 +9,33 @@
     </head>
     <body>
 
+        <!-- Barre de navigation -->
+        <nav class="navbar">
+            <h1>🎵 MusicApp</h1>
+        </nav>
+
+        <!-- Header avec espace ajouté et texte centré -->
         <div class="header">
-            <!-- Section du profil -->
             <div class="profile-user">
                 <h2>Bienvenue, <span id="user-name">Nom Prénom</span></h2>
             </div>
-
-            <!-- Section de recherche -->
-            <div class="search-container-user">
-                <input type="text" id="search-playlist" placeholder="Rechercher dans vos playlists..." />
-            </div>
+            <!-- Image de profil -->
+            <a href="profile.html">
+                <img src="../images/default_user.png" alt="Photo de profil" class="profile-picture" title="Voir le profil" />
+            </a>
         </div>
 
-        <h3>Playlists</h3>
-        <div class="playlists">
-
-            <div class="card-playlist">
-                <img src="../images/perceuse01.jpg" alt=" " class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Ma Playlist 1</h3>
-                </div>
-            </div>
-            <div class="card-playlist">
-                <img src="../images/perceuse01.jpg" alt=" " class="card-img">
-                <div class="card-content">
-                    <h3 class="card-title">Ma Playlist 2</h3>
-                </div>
-            </div>
-
+        <!-- Section de recherche avec plus d'espace -->
+        <div class="search-container-user">
+            <input type="text" id="search-playlist" placeholder="🔍 Rechercher une musique..." />
         </div>
 
-        <h3> Les musiques du moment</h3>
-        <div class="musique">            
+        <!-- Contenu principal -->
+        <h3>🔥 Vos Playlists</h3>
+        <div class="playlists" id="playlists-container"></div>
+
+        <h3>🎶 Les musiques du moment</h3>
+        <div class="musique">
             <div id="songs"></div>
         </div>
 
@@ -54,22 +49,17 @@
                 <button>▶️</button>
                 <button>⏭️</button>
             </div>
+            <div class="progress-bar"></div> <!-- Barre de progression ajoutée -->
             <div class="music-controls">
-                <button class="like-button">👍</button>
-                <button class="add-to-playlist-button">Ajouter à la playlist</button> <!-- Nouveau bouton -->
+                <button class="like-button">❤️</button>
+                <button class="add-to-playlist-button">➕</button>
             </div>
         </div>
-        
-        
 
-        <!-- Image de maison en bas à droite -->
+        <!-- Image de retour repositionnée -->
         <a href="home.html" class="house-image">
-            <img src="../images/Capture_d_écran_2025-03-03_113655-removebg-preview.png" title="Revenir a la page de presentation"/>
+            <img src="../images/Capture_d_écran_2025-03-03_113655-removebg-preview.png" title="Revenir à la page de présentation"/>
         </a>
-
-        
 
     </body>
 </html>
-
-
