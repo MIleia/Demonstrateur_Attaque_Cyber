@@ -3,10 +3,10 @@ USE musicDB;
 
 -- Insertion des utilisateurs
 INSERT INTO users (mail, lastname, firstname, password, profile_picture) VALUES
-('user1@example.com', 'Doe', 'John', 'hashed_password1', '../images/default_user.png'),
-('user2@example.com', 'Smith', 'Jane', 'hashed_password2', '../images/default_user.png'),
-('artist1@example.com', 'Brown', 'Alice', 'hashed_password3', '../images/default_user.png'),
-('admin@admin.com', 'Admin', 'Super', 'hashed_password4', '../images/default_user.png');
+('user1@user.com', 'Doe', 'John', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
+('user2@user.com', 'Smith', 'Jane', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
+('artist1@artist.com', 'Brown', 'Alice', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png'),
+('admin@admin.com', 'Admin', 'admin', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', '../images/default_user.png');
 
 
 -- Insertion des administrateurs
@@ -16,7 +16,7 @@ INSERT INTO admin (mail) VALUES
 
 -- Insertion des artistes
 INSERT INTO artist (mail) VALUES
-('artist1@example.com');
+('avicci@artist.com');
 
 
 -- Insertion des albums

@@ -45,6 +45,7 @@
                 // Définition des cookies pour stocker le nom et prénom (valide pour 1 jour)
                 setcookie("firstname", $result['firstname'], time() + 86400, "/");
                 setcookie("lastname", $result['lastname'], time() + 86400, "/");
+                setcookie("mail", $result['mail'], time() + 86400, "/");
             
                 echo json_encode(["success" => true, "user" => $result]);
             } else {
@@ -68,9 +69,8 @@
     // function for print all playlists of the user
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getPlaylists") {
-            session_start();
-            if (isset($_SESSION['user_id'])) {
-                $result = dbGetUserPlaylists($db, $_SESSION['user_id']);
+            if (isset($_COOKIE['mail'])) {  // Vérifie si le cookie existe
+                $result = dbGetUserPlaylists($db, $_COOKIE['mail']);
                 if ($result !== false) {
                     echo json_encode(["success" => true, "playlists" => $result]);
                 } else {
@@ -85,16 +85,59 @@
     // function for print all liked songs of the user
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getLikedSongs") {
-            session_start();
-            if (isset($_SESSION['user_id'])) {
-                $result = dbGetLikedSongs($db, $_SESSION['user_id']);
-                if ($result !== false) {
+            // On ne se base plus sur la session, mais sur le cookie (ici, user_id)
+            if (isset($_COOKIE['mail'])) {
+                $result = dbGetLikedSongs($db, $_COOKIE['mail']);
+                // Si $result est false ou vide, on renvoie quand même un tableau vide
+                if ($result !== false && !empty($result)) {
                     echo json_encode(["success" => true, "likedSongs" => $result]);
                 } else {
-                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des chansons likées."]);
+                    echo json_encode(["success" => true, "likedSongs" => []]);
                 }
             } else {
                 echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
+            }
+            exit;
+        }
+    }
+
+
+    // function to print the album's name of the song
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getAlbumName") {
+            if (isset($_GET["id_song"])) {
+                $result = dbGetAlbum($db, $_GET["id_song"]);
+                if ($result !== false) {
+                    // Récupérer le nom de l'album dbGetAlbumName
+                    $result = dbGetAlbumName($db, $result['id_album']);
+                    if ($result !== false) {
+                        echo json_encode(["success" => true, "albumName" => $result['name']]);
+                    } else {
+                        echo json_encode(["success" => false, "message" => "Erreur lors de la récupération du nom de l'album."]);
+                    }
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération du nom de l'album."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Identifiant de la chanson non fourni."]);
+            }
+        }
+    }
+
+    // function to print the artiste's name of the song
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getArtistName") {
+            if (isset($_GET["id_song"])) {
+                $result = dbGetArtist($db, $_GET["id_artist"]);
+                if ($result !== false) {
+                    // dbGetUser
+                    $result = dbGetUserInfos($db, $result['mail']);
+                    echo json_encode(["success" => true, "artistName" => $result['name']]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération du nom de l'artiste."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Identifiant de la chanson non fourni."]);
             }
         }
     }
@@ -114,7 +157,31 @@
 
 
     
-
+    if (isset($_POST['action']) && $_POST['action'] == 'addLike') {
+        // Récupérer les données envoyées
+        $songId = $_POST['songId'];
+        $userMail = $_POST['userMail'];
+        
+        // Vérifier si l'utilisateur a déjà liké cette chanson
+        $checkQuery = "SELECT * FROM likes WHERE id_song = ? AND mail = ?";
+        $stmt = $pdo->prepare($checkQuery);
+        $stmt->execute([$songId, $userMail]);
+        
+        if ($stmt->rowCount() == 0) {
+            // Ajouter la chanson dans la table likes
+            $insertQuery = "INSERT INTO likes (id_song, mail) VALUES (?, ?)";
+            $stmt = $pdo->prepare($insertQuery);
+            $stmt->execute([$songId, $userMail]);
+            
+            // Répondre avec succès
+            echo json_encode(['success' => true]);
+        } else {
+            // L'utilisateur a déjà liké cette chanson
+            echo json_encode(['success' => false, 'message' => 'Vous avez déjà liké cette chanson.']);
+        }
+    }
+    
+    
 ?>
 
 

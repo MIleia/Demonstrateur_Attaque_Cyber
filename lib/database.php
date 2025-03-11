@@ -145,6 +145,51 @@
             return "Error: " . $exception->getMessage();
         }
     }
+
+    // Get album's name via song id
+    function dbGetAlbum($db, $id_song) {
+        try {
+            $request = 'SELECT id_album FROM appartient WHERE id=:id_song';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':id_song', $id_song);
+            $statement->execute();
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
+        }
+    }
+
+    function dbGetAlbumName($db, $id_album) {
+        try {
+            $request = 'SELECT name FROM album WHERE id=:id_album';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':id_album', $id_album);
+            $statement->execute();
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
+        }
+    }
+
+    // Get the artist's name via song id_artiste, passer par la table artiste pour recuper le mail, puis table user pour avoir son nom
+    function dbGetArtist($db, $id_song) {
+        try {
+            $request = 'SELECT id_artiste FROM artiste WHERE id=:id_artiste';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':id_artiste', $id_artiste);
+            $statement->execute();
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
+        }
+    }
+
 ?>
 
 

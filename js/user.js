@@ -9,66 +9,82 @@ document.addEventListener('DOMContentLoaded', function() {
         let userNameElement = document.getElementById('user-name');
         userNameElement.textContent = `${firstname} ${lastname}`;
     } else {
-        console.log("Nom et prénom non disponibles.");
+        console.log("Nom et prénom introuvables.");
+    }
+
+    // Récupération des playlists de l'utilisateur
+    let usermail = getCookie('mail');
+    if (usermail) {
+        fetch(`../lib/request.php?action=getPlaylists`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let playlistsElement = document.querySelector('.playlists');
+                data.playlists.forEach(playlist => {
+                    let playlistElement = document.createElement('div');
+                    playlistElement.classList.add('card-playlist');
+                    playlistElement.innerHTML = `
+                        <img src="${playlist.image}" alt=" " class="card-img">
+                        <div class="card-content">
+                            <h3 class="card-title">${playlist.name}</h3>
+                        </div>
+                    `;
+                    playlistsElement.appendChild(playlistElement);
+                });
+            } else {
+                console.error('Erreur lors de la récupération des playlists');
+            }
+        })
+        .catch(error => console.error("Erreur lors de la récupération des playlists :", error));
+    } else {
+        console.log("Utilisateur non connecté.");
     }
 
 
-
-    // Récupération des playlists de l'utilisateur
-    // Récupération des playlists de l'utilisateur
-    fetch('../lib/request.php?action=getPlaylists')
-    .then(response => response.text())
-    .then(text => {
-        console.log('Réponse brute des playlists :', text);
-        return JSON.parse(text);
-    })
-    .then(data => {
-        if (data.success) {
-            let playlistsElement = document.querySelector('.playlists');
-            data.playlists.forEach(playlist => {
-                let playlistElement = document.createElement('div');
-                playlistElement.classList.add('card-playlist');
-                playlistElement.innerHTML = `
-                    <img src="${playlist.image}" alt=" " class="card-img">
-                    <div class="card-content">
-                        <h3 class="card-title">${playlist.name}</h3>
-                    </div>
-                `;
-                playlistsElement.appendChild(playlistElement);
-            });
-        } else {
-            console.error('Erreur lors de la récupération des playlists');
-        }
-    })
-    .catch(error => console.error("Erreur lors de la récupération des playlists :", error));
-
     // Récupérer les chansons likées par l'utilisateur
-    fetch('../lib/request.php?action=getLikedSongs')
-    .then(response => response.text())
-    .then(text => {
-        console.log('Réponse brute des chansons likées :', text);
-        return JSON.parse(text);
-    })
-    .then(data => {
-        if (data.success) {
-            let likedSongsElement = document.querySelector('.musique');
-            data.likedSongs.forEach(song => {
-                let songElement = document.createElement('div');
-                songElement.classList.add('card-playlist'); // Utilisation de card-playlist pour la même structure
-                songElement.innerHTML = `
-                    <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
-                    <div class="card-content">
-                        <h3 class="card-title">${song.name}</h3>
-                        <h3 class="card-singer">Artiste : ${song.artist}</h3>
-                    </div>
-                `;
-                likedSongsElement.appendChild(songElement);
-            });
-        } else {
-            console.error('Erreur lors de la récupération des chansons likées');
-        }
-    })
-    .catch(error => console.error("Erreur lors de la récupération des chansons likées :", error));
+    if (usermail) {
+        fetch(`../lib/request.php?action=getLikedSongs`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erreur du serveur : " + response.status);
+            }
+            return response.json(); // On tente de parser la réponse en JSON
+        })
+        .then(data => {
+            if (data.success) {
+                let likedSongsElement = document.querySelector('.musique');
+                data.songs.forEach(song => {
+                    let songElement = document.createElement('div');
+                    songElement.classList.add('card-playlist');
+                    songElement.innerHTML = `
+                        <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
+                        <div class="card-content">
+                            <h3 class="card-title">${song.name}</h3>
+                            <h3 class="card-singer">Artiste : ${song.artist}</h3>
+                        </div>
+                    `;
+                    likedSongsElement.appendChild(songElement);
+                });
+            } else {
+                console.error('Erreur lors de la récupération des chansons likées');
+            }
+        })
+        .catch(error => {
+            console.error("Erreur lors de la récupération des chansons likées :", error);
+        });
+    } else {
+        console.log("Utilisateur non connecté.");
+    }
 
 
     // Récupération des chansons de la BDD
@@ -93,27 +109,58 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Réponse brute du serveur :', text);
         return JSON.parse(text);
     })
-    .then(data => {
+    .then(async (data) => { // Utilisation de async pour await
         if (data.success) {
+            let songsElement = document.getElementById('songs');
+            // Affecter la réponse au tableau global, sans redéclaration locale
             songsList = data.songs;
-            songsList.forEach((song, index) => {
+
+            for (let song of songsList) {
+                // Récupération du nom de l'album
+                if (song.id_album) {
+                    try {
+                        let albumResponse = await fetch(`../lib/request.php?action=getAlbumName&id_album=${song.id_album}`);
+                        let albumData = await albumResponse.json();
+                        song.album = albumData.success ? albumData.albumName : "Aucun album";
+                    } catch (error) {
+                        console.error("Erreur lors de la récupération de l'album :", error);
+                        song.album = "Aucun album";
+                    }
+                } else {
+                    song.album = "Aucun album";
+                }
+
+                // Récupération du nom de l'artiste
+                if (song.id_artist) {
+                    try {
+                        let artistResponse = await fetch(`../lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
+                        let artistData = await artistResponse.json();
+                        song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
+                    } catch (error) {
+                        console.error("Erreur lors de la récupération de l'artiste :", error);
+                        song.artist = "Artiste inconnu";
+                    }
+                } else {
+                    song.artist = "Artiste inconnu";
+                }
+
+                // Création et affichage de l'élément une fois toutes les données disponibles
                 let songElement = document.createElement('div');
                 songElement.classList.add('card-musique');
                 songElement.innerHTML = `
                     <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
                     <h3 class="card-title">${song.name}</h3>
-                    <h3 class="card-album">Album inconnu</h3>
-                    <h3 class="card-singer">Artiste ID: ${song.id_artist}</h3>
+                    <h3 class="card-album">Album : ${song.album}</h3>
+                    <h3 class="card-singer">Artiste : ${song.artist}</h3>
                     <h3 class="card-play">
-                        <button class="play-button" data-index="${index}">▶️</button>
+                        <button class="play-button" data-index="${songsList.indexOf(song)}">▶️</button>
                     </h3>
                 `;
                 songsElement.appendChild(songElement);
-            });
+            }
 
             // Ajout d'écouteur d'événements pour chaque bouton de lecture
-            let playButtons = document.querySelectorAll('.play-button');
-            playButtons.forEach(button => {
+            document.querySelectorAll('.play-button').forEach(button => {
                 button.addEventListener('click', function() {
                     let index = button.getAttribute('data-index');
                     playSong(index);
@@ -125,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     })
     .catch(error => console.error("Erreur lors de la récupération des chansons :", error));
+
 
     // Fonction pour jouer une chanson
     function playSong(index) {
@@ -214,139 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-
-
-
-
-
-
-    //c-------------------------------
-
-    // Contrôle du bouton "Like"
-    likeButton.addEventListener('click', function() {
-        let currentSong = songsList[currentSongIndex];
-        let userId = getCookie('user_id'); // L'ID de l'utilisateur depuis le cookie
-
-        // Vérification que l'utilisateur est connecté
-        if (userId) {
-            fetch('../lib/request.php?action=addToFavorites', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    song_id: currentSong.id // ID de la chanson courante
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Chanson ajoutée aux favoris !');
-                } else {
-                    alert('Erreur lors de l\'ajout aux favoris.');
-                }
-            })
-            .catch(error => console.error("Erreur lors de l'ajout aux favoris :", error));
-        } else {
-            alert('Veuillez vous connecter pour ajouter cette chanson aux favoris.');
-        }
-    });
-
-    // Ajout de la chanson à une playlist (avec menu déroulant)
-    addToPlaylistButton.addEventListener('click', function() {
-        let currentSong = songsList[currentSongIndex];
-        let userId = getCookie('user_id'); // L'ID de l'utilisateur depuis le cookie
-
-        // Vérification que l'utilisateur est connecté
-        if (userId) {
-            fetch('../lib/request.php?action=getUserPlaylists', {
-                method: 'GET'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let playlistMenu = document.createElement('select');
-                    playlistMenu.innerHTML = `<option value="new">Créer une nouvelle playlist</option>`;
-                    data.playlists.forEach(playlist => {
-                        playlistMenu.innerHTML += `<option value="${playlist.id}">${playlist.name}</option>`;
-                    });
-
-                    let submitButton = document.createElement('button');
-                    submitButton.textContent = 'Ajouter à la Playlist';
-                    document.body.appendChild(playlistMenu);
-                    document.body.appendChild(submitButton);
-
-                    submitButton.addEventListener('click', function() {
-                        let selectedPlaylist = playlistMenu.value;
-                        if (selectedPlaylist === 'new') {
-                            let newPlaylistName = prompt('Nom de la nouvelle playlist :');
-                            createNewPlaylist(newPlaylistName, currentSong.id, userId);
-                        } else {
-                            addToExistingPlaylist(selectedPlaylist, currentSong.id, userId);
-                        }
-
-                        playlistMenu.remove();
-                        submitButton.remove();
-                    });
-                } else {
-                    alert('Erreur lors de la récupération des playlists.');
-                }
-            })
-            .catch(error => console.error("Erreur lors de la récupération des playlists :", error));
-        } else {
-            alert('Veuillez vous connecter pour ajouter cette chanson à une playlist.');
-        }
-    });
-
-    // Fonction pour créer une nouvelle playlist
-    function createNewPlaylist(name, songId, userId) {
-        fetch('../lib/request.php?action=createPlaylist', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                playlist_name: name,
-                song_id: songId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Playlist "${name}" créée et chanson ajoutée !`);
-            } else {
-                alert('Erreur lors de la création de la playlist.');
-            }
-        })
-        .catch(error => console.error("Erreur lors de la création de la playlist :", error));
-    }
-
-    // Fonction pour ajouter une chanson à une playlist existante
-    function addToExistingPlaylist(playlistId, songId, userId) {
-        fetch('../lib/request.php?action=addToPlaylist', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                playlist_id: playlistId,
-                song_id: songId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Chanson ajoutée à la playlist !');
-            } else {
-                alert('Erreur lors de l\'ajout à la playlist.');
-            }
-        })
-        .catch(error => console.error("Erreur lors de l'ajout à la playlist :", error));
-    }
+    
 });
+
 
 
 function getCookie(name) {
@@ -355,4 +273,35 @@ function getCookie(name) {
 }
 
 
+// Contrôle du bouton "Like"
+document.addEventListener('DOMContentLoaded', function() {
+    let musicFooter = document.querySelector('.music-footer');
+    if (!musicFooter) {
+        console.error("music-footer introuvable.");
+        return;
+    }
+
+    let likeButton = musicFooter.querySelector('.like-button');
+    if (!likeButton) {
+        console.error("like-button introuvable.");
+        return;
+    }
+
+    likeButton.addEventListener('click', function() {
+        let songId = songsList[currentSongIndex]?.id_song; // Vérifier si songsList est défini
+        let userMail = getCookie('email');
+
+        if (userMail && songId) {
+            fetch('../lib/request.php?action=addLike', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `email=${userMail}&id_song=${songId}`
+            })
+        } else {
+            alert('Veuillez vous connecter pour ajouter une chanson aux favoris.');
+        }
+    });
+});
 
