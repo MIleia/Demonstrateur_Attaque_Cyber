@@ -51,7 +51,6 @@ body {
     flex-grow: 1;
     display: flex;
     justify-content: center;
-
 }
 
 .search-container-user input {
@@ -103,6 +102,45 @@ h2, h3 {
     letter-spacing: 1px;
 }
 
+/* Favoris */
+.favorite-songs-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.card-favorite-song {
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.card-favorite-song img {
+    margin-bottom: 10px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+}
+
+.card-favorite-song:hover {
+    transform: scale(1.1);
+}
+
+.card-favorite-song p {
+    font-size: 14px;
+    font-weight: bold;
+}
+
 /* Playlists */
 .playlists {
     display: flex;
@@ -138,17 +176,18 @@ h2, h3 {
     margin-bottom: 12px;
 }
 
-/* Musiques - Affichage élargi */
+/* Musiques */
 .musique {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: 50px;
+    margin-right: 350px;
 }
 
 .card-musique {
-    width: 100%;
-    max-width: 900px; /* Élargi */
+    width: 150%;
+    max-width: 1500px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 20px;
@@ -259,7 +298,7 @@ h2, h3 {
 /* Image retour accueil */
 .house-image {
     position: fixed;
-    bottom: 14%;
+    bottom: 12%;
     right: 25px;
     opacity: 0.8;
     transition: opacity 0.3s;
@@ -270,8 +309,100 @@ h2, h3 {
 }
 
 .house-image img {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1000px;
+    height: 600px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    color: white;
+}
+
+.modal-content {
+    text-align: center;
+}
+
+.modal h2 {
+    color: white;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+
+
+/* 🎵 Style des chansons */
+.playlist-song {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: rgba(255, 255, 255, 0.1); /* Fond léger */
+    border-radius: 5px;
+    text-align: left;
+    color: #A8E6CF; /* Vert pastel clair */
+    font-weight: bold;
+    position: relative;
+}
+
+.playlist-song p {
+    margin: 0;
+    padding: 0;
+}
+
+.playlist-song .artist-name {
+    font-style: italic;
+    color: #D1E8E4; /* Légèrement plus clair que le titre */
+}
+
+.delete-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.delete-button:hover {
+    background-color: darkred;
+}
+
+/* ❌ Bouton de fermeture */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 60px;
+    cursor: pointer;
+    color: rgb(175, 48, 48);
 }
 
 

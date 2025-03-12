@@ -4,14 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
     registerForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        let lastname = document.getElementById("lastname").value.trim();
-        let firstname = document.getElementById("firstname").value.trim();
+        let username = document.getElementById("username").value.trim();
         let email = document.getElementById("email").value.trim();
         let password = document.getElementById("password").value.trim();
         let errorMessage = document.getElementById("error-message");
 
         // Check if fields are empty
-        if (lastname === "" || firstname === "" || email === "" || password === "") {
+        if (username === "" || email === "" || password === "") {
             errorMessage.innerText = "Veuillez remplir tous les champs.";
             errorMessage.style.color = "red";
             return;
@@ -35,8 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Send data via AJAX
         let formData = new FormData();
         formData.append("action", "register");
-        formData.append("lastname", lastname);
-        formData.append("firstname", firstname);
+        formData.append("username", username);
         formData.append("email", email);
         formData.append("password", password);
 
