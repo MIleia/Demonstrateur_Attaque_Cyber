@@ -82,22 +82,21 @@
     }
 
     // Action pour récupérer les chansons d'une playlist
-// Action pour récupérer les chansons d'une playlist
-if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
-    if ($_GET["action"] === "getPlaylistSongs") {
-        if (isset($_GET["id_playlist"])) {
-            $result = dbGetPlaylistSongs($db, $_GET["id_playlist"]);
-            if ($result !== false) {
-                echo json_encode(["success" => true, "songs" => $result]);
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
+        if ($_GET["action"] === "getPlaylistSongs") {
+            if (isset($_GET["id_playlist"])) {
+                $result = dbGetPlaylistSongs($db, $_GET["id_playlist"]);
+                if ($result !== false) {
+                    echo json_encode(["success" => true, "songs" => $result]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des chansons de la playlist."]);
+                }
             } else {
-                echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des chansons de la playlist."]);
+                echo json_encode(["success" => false, "message" => "Identifiant de la playlist non fourni."]);
             }
-        } else {
-            echo json_encode(["success" => false, "message" => "Identifiant de la playlist non fourni."]);
+            exit;
         }
-        exit;
     }
-}
 
 
 
@@ -198,9 +197,24 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
             }
         }
     }
+
+    // function to delete a liked song
+    if (isset($_GET["action"]) && $_GET["action"] === "removeLikedSong") {
+        if (isset($_GET["mail"]) && isset($_GET["id_song"])) {
+            $result = dbDeleteLikedSong($db, $_GET["mail"], $_GET["id_song"]);
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de la chanson likée."]);
+            }
+        } else {
+            echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
+        }
+    }
     
     
     
+    
 
 
 
@@ -209,12 +223,19 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
 
 
 
+    // funnction to remove a song from a playlist
     /*
     if ($_POST['action'] == 'removeSongFromPlaylist') {
-        $songId = $_POST['song_id'];
-        $playlistId = $_POST['playlist_id'];
-        $result = removeSongFromPlaylist($songId, $playlistId);
-        echo json_encode($result);
+        if (isset($_POST['id_playlist']) && isset($_POST['id_song'])) {
+            $result = dbRemoveSongFromPlaylist($db, $_POST['id_playlist'], $_POST['id_song']);
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de la chanson de la playlist."]);
+            }
+        } else {
+            echo json_encode(["success" => false, "message" => "Identifiant de la playlist ou de la chanson non fourni."]);
+        }
     }*/
 
     
@@ -227,7 +248,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
 
 
 
-    /*
+    
     if (isset($_POST['action']) && $_POST['action'] == 'addLike') {
         // Récupérer les données envoyées
         $songId = $_POST['songId'];
@@ -251,7 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
             echo json_encode(['success' => false, 'message' => 'Vous avez déjà liké cette chanson.']);
         }
     }
-    */
+    
     
 
     /*

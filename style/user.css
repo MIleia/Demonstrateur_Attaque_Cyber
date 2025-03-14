@@ -111,7 +111,15 @@ h2, h3 {
     margin-bottom: 40px;
 }
 
+.card-favorite-song img {
+    margin-bottom: 10px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+}
+
 .card-favorite-song {
+    position: relative;
     width: 150px;
     height: 150px;
     background: rgba(255, 255, 255, 0.1);
@@ -125,16 +133,21 @@ h2, h3 {
     text-align: center;
 }
 
-.card-favorite-song img {
-    margin-bottom: 10px;
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
+.remove-favorite {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
 }
 
-.card-favorite-song:hover {
-    transform: scale(1.1);
+.remove-favorite:hover {
+    transform: scale(1.2);
 }
+
+
 
 .card-favorite-song p {
     font-size: 14px;

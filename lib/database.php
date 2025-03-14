@@ -199,6 +199,7 @@ function dbGetLikedSongs($db, $mail) {
         }
     }
 
+    // Function to remove a song from a playlist
     function removeSongFromPlaylist($id_song, $id_playlist) {
         try {
             $stmt = $db->prepare("DELETE FROM playlist_songs WHERE id_song = :id_song AND id_playlist = :id_playlist");
@@ -227,8 +228,7 @@ function dbGetLikedSongs($db, $mail) {
             error_log("Erreur dbGetIdSong: " . $e->getMessage());
             return false;
         }
-    }
-    
+    }   
 
     // function to get song from id
     function dbGetSong($db, $id_song) {
@@ -239,6 +239,20 @@ function dbGetLikedSongs($db, $mail) {
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Erreur dbGetSong: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // function to delete a liked song
+    function dbDeleteLikedSong($db, $mail, $id_song) {
+        try {
+            $stmt = $db->prepare("DELETE FROM likes WHERE mail = :mail AND id_song = :id_song");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':id_song', $id_song);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbDeleteLikedSong: " . $e->getMessage());
             return false;
         }
     }

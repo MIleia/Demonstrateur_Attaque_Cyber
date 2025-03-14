@@ -56,9 +56,9 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     // Function to show the songs of a playlist
-    function showPlaylistSongs(id_playlist, playlistName){
+    function showPlaylistSongs(id_playlist, playlistName) {
         console.log("Affichage de la playlist :", playlistName, "ID:", id_playlist);
-        
+    
         fetch(`../lib/request.php?action=getPlaylistSongs&id_playlist=${id_playlist}`, {
             method: 'GET',
             headers: {
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function(){
             console.log("Réponse brute du serveur :", text);
             return JSON.parse(text);
         })
-        .then(data => {
+        .then(async (data) => {
             console.log("Données JSON parsées :", data);
             if (data.success) {
                 console.log("Chansons trouvées :", data.songs.length);
@@ -98,8 +98,25 @@ document.addEventListener('DOMContentLoaded', function(){
                     return;
                 }
     
-                if (data.songs.length > 0){
-                    data.songs.forEach(song => {
+                if (data.songs.length > 0) {
+                    
+    
+                    // Affichage des chansons avec le bon nom d'artiste
+                    data.songs.forEach(async song => {
+                        // Récupérer le nom de l'artiste
+                        if (song.id_artist){
+                            try{
+                                let artistResponse = await fetch(`../lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
+                                let artistData = await artistResponse.json();
+                                song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
+                            } catch (error){
+                                console.error("Erreur lors de la récupération de l'artiste :", error);
+                                song.artist = "Artiste inconnu";
+                            }
+                        } else{
+                            song.artist = "Artiste inconnu";
+                        }
+    
                         let songDiv = document.createElement('div');
                         songDiv.classList.add('playlist-song');
                         songDiv.innerHTML = `
@@ -108,11 +125,11 @@ document.addEventListener('DOMContentLoaded', function(){
                         `;
                         songsContainer.appendChild(songDiv);
     
-                        songDiv.querySelector('.delete-button').addEventListener('click', function(){
+                        songDiv.querySelector('.delete-button').addEventListener('click', function() {
                             deleteSongFromPlaylist(song.id_song, id_playlist);
                         });
     
-                        songDiv.addEventListener('click', function(){
+                        songDiv.addEventListener('click', function() {
                             playSong(song.id_song);
                         });
                     });
@@ -121,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     songsContainer.innerHTML = "<p>Aucune chanson dans cette playlist.</p>";
                 }
     
-                modal.querySelector('.close-button').addEventListener('click', function(){
+                modal.querySelector('.close-button').addEventListener('click', function() {
                     modal.remove();
                 });
             } else {
@@ -131,47 +148,6 @@ document.addEventListener('DOMContentLoaded', function(){
         .catch(error => console.error("Erreur lors de la récupération des chansons de la playlist :", error));
     }
     
-    /*
-    if (usermail) {
-        fetch(`../lib/request.php?action=getLikedSongs`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Erreur du serveur : " + response.status);
-            }
-            return response.json(); // On tente de parser la réponse en JSON
-        })
-        .then(data => {
-            if (data.success) {
-                let likedSongsElement = document.querySelector('.musique');
-                data.songs.forEach(song => {
-                    let songElement = document.createElement('div');
-                    songElement.classList.add('card-playlist');
-                    songElement.innerHTML = `
-                        <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
-                        <div class="card-content">
-                            <h3 class="card-title">${song.name}</h3>
-                            <h3 class="card-singer">${song.artist}</h3>
-                        </div>
-                    `;
-                    likedSongsElement.appendChild(songElement);
-                });
-            } else{
-                console.error('Erreur lors de la récupération des chansons likées');
-            }
-        })
-        .catch(error => {
-            console.error("Erreur lors de la récupération des chansons likées :", error);
-        });
-    } else{
-        console.log("Utilisateur non connecté.");
-    }
-    */
-
     // Function to play a song
     let songsElement = document.getElementById('songs');
     let musicFooter = document.querySelector('.music-footer');
@@ -348,18 +324,14 @@ document.addEventListener('DOMContentLoaded', function(){
         })
         .catch(error => console.error("Erreur lors de la suppression de la chanson :", error));
     }
-    
-
-    
+     
 });
 
-
-
+// Function to get a cookie value
 function getCookie(name) {
     let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     return match ? match[2] : null;
 }
-
 
 // button 'like'
 document.addEventListener('DOMContentLoaded', function(){
@@ -385,22 +357,27 @@ document.addEventListener('DOMContentLoaded', function(){
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: `email=${userMail}&id_song=${songId}`
+                body: `song_id=${songId}&email=${userMail}`
             })
-        } else{
-            alert('Veuillez vous connecter pour ajouter une chanson aux favoris.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success){
+                    alert('Chanson ajoutée aux favoris !');
+                } else{
+                    console.error("Erreur lors de l'ajout de la chanson aux favoris :", data.message);
+                }
+            })
+            .catch(error => console.error("Erreur lors de l'ajout de la chanson aux favoris :", error));
         }
     });
 });
 
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
+// button 'add to playlist'
+document.addEventListener('DOMContentLoaded', function (){
     let usermail = getCookie('mail');
 
-    if (usermail) {
-        fetch('../lib/request.php?action=getLikedSong&mail=' + usermail, {
+    if (usermail){
+        fetch(`../lib/request.php?action=getLikedSong&mail=${usermail}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -408,30 +385,64 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.success && data.songs.length > 0){
                 let favoriteSongsContainer = document.getElementById('favorite-songs-container');
-                favoriteSongsContainer.innerHTML = ''; // Nettoyer l'affichage avant d'ajouter les nouvelles chansons
+                favoriteSongsContainer.innerHTML = '';
 
-                data.songs.forEach(song => {
-                    let songElement = document.createElement('div');
-                    songElement.classList.add('card-favorite-song');
-                    songElement.innerHTML = `
-                        <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
-                        <p>${song.name}</p>
-                    `;
-                    favoriteSongsContainer.appendChild(songElement);
-                });
-            } else {
+                // Display the favorite songs
+                if (data.songs.length > 0) {
+                    data.songs.forEach(song => {
+                        let songElement = document.createElement('div');
+                        songElement.classList.add('card-favorite-song');
+                        songElement.innerHTML = `
+                            <img src="${song.picture.replace('../', '')}" alt="${song.name}" class="card-img">
+                            <p>${song.name}</p>
+                            <img src="../images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
+                        `;
+                        favoriteSongsContainer.appendChild(songElement);
+                    });
+    
+                    // Add event listeners to the remove favorite buttons
+                    document.querySelectorAll('.remove-favorite').forEach(button => {
+                        button.addEventListener('click', function(event) {
+                            event.stopPropagation();
+                            let songId = this.getAttribute('data-song-id');
+                            removeFavoriteSong(songId, usermail);
+                        });
+                    });
+                }
+            } else{
                 console.error('Erreur lors de la récupération des musiques favorites:', data.message);
             }
         })
         .catch(error => {
             console.error('Erreur lors de la récupération des musiques favorites:', error);
         });
-    } else {
+    } else{
         console.log("Utilisateur non connecté.");
     }
 });
 
+// Function to remove a song from the favorites
+function removeFavoriteSong(id_song, usermail) {
+    fetch(`../lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${id_song}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Chanson retirée des favoris.');
+            location.reload();
+        } else {
+            console.error('Erreur lors de la suppression de la chanson des favoris:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la suppression de la chanson des favoris:', error);
+    });
+}
 
 

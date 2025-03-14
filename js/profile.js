@@ -1,12 +1,11 @@
 document.getElementById('updateProfileForm').addEventListener('submit', function(event) {
-    event.preventDefault();  // Empêche l'envoi du formulaire classique
+    event.preventDefault();
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const profilePicture = document.getElementById('profile_picture').files[0];
 
-    // Vérification de la confirmation du mot de passe
     if (password !== confirmPassword) {
         document.getElementById('responseMessage').innerText = "Les mots de passe ne correspondent pas.";
         return;
