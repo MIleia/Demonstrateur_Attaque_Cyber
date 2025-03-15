@@ -16,7 +16,6 @@ function ajaxRequest(type, url, callback, data = null) {
             httpErrors(xhr.status);
         }
     };
-
     xhr.send(data);
 }
 
@@ -30,7 +29,6 @@ function httpErrors(errorCode) {
         500: "Erreur interne du serveur",
         503: "Service indisponible"
     };
-
     let errorMsg = messages[errorCode] || "Erreur inconnue";
     console.error("Erreur HTTP :", errorMsg);
 }

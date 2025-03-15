@@ -1,6 +1,4 @@
 <?php
-    //session_start();
-
     include 'database.php';
 
 
@@ -20,7 +18,7 @@
             $email = $_POST["email"];
             $password = $_POST["password"];
             $username = $_POST["username"];
-            $profile_picture = "../images/default_user.png";
+            $profile_picture = "images/default_user.png";
             $result = dbInsertNewUser($db, $email, $username, $password, $profile_picture);
             
             // Check if the email is already taken

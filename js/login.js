@@ -1,54 +1,52 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const loginForm = document.getElementById("loginForm");
-
-    loginForm.addEventListener("submit", function (event) {
+$(document).ready(function () {
+    $("#loginForm").on("submit", function (event) {
         event.preventDefault();
 
-        let email = document.getElementById("email").value.trim();
-        let password = document.getElementById("password").value.trim();
-        let errorMessage = document.getElementById("error-message");
+        let email = $("#email").val().trim();
+        let password = $("#password").val().trim();
+        let errorMessage = $("#error-message");
 
-        // Check if fields are empty
+        // Vérifier si les champs sont vides
         if (email === "" || password === "") {
-            errorMessage.innerText = "Veuillez remplir tous les champs.";
-            errorMessage.style.color = "red";
+            errorMessage.text("Veuillez remplir tous les champs.").css("color", "red");
             return;
         }
 
-        // Check if email is valid
+        // Création de l'objet FormData
         let formData = new FormData();
         formData.append("action", "login");
         formData.append("email", email);
         formData.append("password", password);
 
-        
-        fetch("../lib/request.php", {
-            method: "POST",
-            body: formData,
-        })
-        .then(response => response.text())
-        .then(responseText => {
-            console.log("Réponse brute :", responseText);
-            try {                
-                let data = JSON.parse(responseText);
-                if (data.success) {
-                    window.location.href = "user.html";
-                } else {
-                    errorMessage.innerText = data.message;
-                    errorMessage.style.color = "red";
+        // Envoi de la requête AJAX avec jQuery
+        $.ajax({
+            url: "lib/request.php",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                console.log("Réponse brute :", response);
+                try {
+                    let data = JSON.parse(response);
+                    if (data.success) {
+                        window.location.href = "user.html";
+                    } else {
+                        errorMessage.text(data.message).css("color", "red");
+                    }
+                } catch (e) {
+                    errorMessage.text("Erreur de connexion au serveur.").css("color", "red");
+                    console.error("Erreur de parsing JSON:", e);
                 }
-            } catch (error) {
-                errorMessage.innerText = "Erreur de connexion au serveur.";
-                errorMessage.style.color = "red";
-                console.error("Erreur de parsing JSON:", error);
+            },
+            error: function (xhr, status, error) {
+                errorMessage.text("Erreur de connexion au serveur.").css("color", "red");
+                console.error("Erreur AJAX :", error);
             }
-        })
-        .catch(error => {
-            errorMessage.innerText = "Erreur de connexion au serveur.";
-            errorMessage.style.color = "red";
-            console.error("Erreur:", error);
-        });        
+        });
     });
 });
+
+// If user is already connected, redirect to user page
 
 
