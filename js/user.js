@@ -1,4 +1,9 @@
 $(document).ready(function () {
+    // Fonction pour récupérer un cookie
+    function getCookie(name) {
+        let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    }
 
     // Récupérer les informations de l'utilisateur depuis les cookies
     let username = getCookie('username');
@@ -142,11 +147,19 @@ $(document).ready(function () {
         });
     }
 
+    // Fonction pour jouer une chanson par ID (utilisé pour favoris et playlists)
+    function playSongById(songId) {
+        let song = songsList.find(s => s.id_song === songId);
+        if (song) {
+            playSong(songsList.indexOf(song));
+        }
+    }
+
     // Gestion du lecteur audio
     let musicFooter = $('.music-footer');
     let musicImage = musicFooter.find('img');
     let musicTitle = musicFooter.find('span');
-    let playButton = musicFooter.find('button:nth-child(2)');
+    //let playButton = musicFooter.find('button:nth-child(2)');
     let prevButton = musicFooter.find('button:nth-child(1)');
     let nextButton = musicFooter.find('button:nth-child(3)');
     let likeButton = musicFooter.find('.like-button');
@@ -154,66 +167,125 @@ $(document).ready(function () {
     let currentSongIndex = 0;
     let songsList = [];
 
-    // Récupération des chansons du serveur
-    $.getJSON('lib/request.php?action=getSongs', function (data) {
-        if (data.success) {
-            let songsElement = $('#songs');
-            songsList = data.songs;
+   // Récupération des chansons et de leurs informations
+   $.getJSON('lib/request.php?action=getSongs', function (data) {
+       if (data.success) {
+           let songsElement = $('#songs');
+           songsList = data.songs;
 
-            songsList.forEach((song, index) => {
-                let songElement = $(`
-                    <div class="card-musique">
-                        <img src="${song.picture}" alt="${song.name}" class="card-img">
-                        <h3 class="card-title">${song.name}</h3>
-                        <h3 class="card-album">${song.album || "Aucun album"}</h3>
-                        <h3 class="card-singer">${song.artist || "Artiste inconnu"}</h3>
-                        <h3 class="card-play">
-                            <button class="play-button" data-index="${index}">▶️</button>
-                        </h3>
-                    </div>
-                `);
-                songsElement.append(songElement);
+           // Traitement des chansons récupérées
+           songsList.forEach(async (song, index) => {
+               // Récupérer l'album et l'artiste
+               try {
+                   if (song.id_song) {
+                       let albumData = await $.getJSON(`lib/request.php?action=getAlbumName&id_song=${song.id_song}`);
+                       song.album = albumData.success ? albumData.albumName : "Aucun album";
+                   } else {
+                       song.album = "Aucun album";
+                   }
+               } catch (error) {
+                   console.error("Erreur lors de la récupération de l'album :", error);
+                   song.album = "Aucun album";
+               }
 
-                songElement.find('.play-button').click(() => playSong(index));
-            });
-        } else {
-            console.error(data.message);
-        }
-    }).fail(error => console.error("Erreur lors de la récupération des chansons :", error));
+               try {
+                   if (song.id_artist) {
+                       let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
+                       song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
+                   } else {
+                       song.artist = "Artiste inconnu";
+                   }
+               } catch (error) {
+                   console.error("Erreur lors de la récupération de l'artiste :", error);
+                   song.artist = "Artiste inconnu";
+               }
 
-    // Fonction pour jouer une chanson
-    function playSong(index) {
+               // Création de l'élément pour chaque chanson
+               let songElement = $(`
+                   <div class="card-musique">
+                       <img src="${song.picture}" alt="${song.name}" class="card-img">
+                       <h3 class="card-title">${song.name}</h3>
+                       <h3 class="card-album">${song.album}</h3>
+                       <h3 class="card-singer">${song.artist}</h3>
+                       <h3 class="card-play">
+                           <button class="play-button" data-index="${index}">▶️</button>
+                       </h3>
+                   </div>
+               `);
+               songsElement.append(songElement);
+
+               // Ajouter l'événement de lecture au clic
+               songElement.find('.play-button').click(function() {
+                   let songIndex = $(this).data('index');
+                   playSong(songIndex);
+               });
+           });
+       } else {
+           console.error(data.message);
+       }
+   }).fail(error => console.error("Erreur lors de la récupération des chansons :", error));
+
+   // Fonction pour jouer la chanson par index
+   function playSong(index) {
         let song = songsList[index];
+        let musicFooter = $('.music-footer');
+        let musicImage = musicFooter.find('img');
+        let musicTitle = musicFooter.find('span');
+        let playButton = musicFooter.find('button:nth-child(2)');
+
+        // Si la chanson est déjà en train de jouer, mettre en pause
         if (audio.src === `songs/${song.song}` && !audio.paused) {
             audio.pause();
             playButton.text('▶️');
         } else {
+            // Si la chanson change, on met à jour l'audio
             audio.src = `songs/${song.song}`;
             audio.play();
             playButton.text('⏸️');
             musicTitle.text(song.name);
             musicImage.attr('src', song.picture);
-            currentSongIndex = index;
         }
+
+        // Mise à jour de l'index de la chanson actuelle
+        currentSongIndex = index;
+
+        // Ajouter un écouteur pour l'événement de fin de chanson
+        audio.onended = function () {
+            nextSong(); // Passer à la chanson suivante à la fin
+        };
     }
 
-    // Fonction pour jouer une chanson à partir de son ID
-    function playSongById(songId) {
-        let song = songsList.find(s => s.id_song == songId);
-        if (song) {
-            playSong(songsList.indexOf(song));
-        }
+    // Fonction pour passer à la chanson suivante
+    function nextSong() {
+        currentSongIndex = (currentSongIndex + 1) % songsList.length;
+        playSong(currentSongIndex);
+    }
+
+    // Fonction pour revenir à la chanson précédente
+    function prevSong() {
+        currentSongIndex = (currentSongIndex - 1 + songsList.length) % songsList.length;
+        playSong(currentSongIndex);
     }
 
     // Gestion des boutons précédent/suivant
-    prevButton.click(() => {
-        currentSongIndex = (currentSongIndex > 0) ? currentSongIndex - 1 : songsList.length - 1;
-        playSong(currentSongIndex);
+    $('.music-footer').find('.prev-button').click(function () {
+        prevSong();
+    });
+    $('.music-footer').find('.next-button').click(function () {
+        nextSong();
     });
 
-    nextButton.click(() => {
-        currentSongIndex = (currentSongIndex < songsList.length - 1) ? currentSongIndex + 1 : 0;
-        playSong(currentSongIndex);
+    // Gestion du bouton de lecture/pause
+    let playButton = $('.music-footer').find('button:nth-child(2)');
+    playButton.click(function () {
+        let song = songsList[currentSongIndex];
+        if (audio.paused) {
+            audio.play();
+            playButton.text('⏸️');
+        } else {
+            audio.pause();
+            playButton.text('▶️');
+        }
     });
 
     // Ajout aux favoris
@@ -222,17 +294,11 @@ $(document).ready(function () {
         if (usermail && songId) {
             $.post('lib/request.php?action=addLike', { song_id: songId, email: usermail }, function (data) {
                 if (data.success) {
-                    alert('Chanson ajoutée aux favoris !');
+                    alert('Ajouté aux favoris');
                 } else {
-                    console.error("Erreur lors de l'ajout aux favoris :", data.message);
+                    alert('Erreur, essai plus tard');
                 }
             });
         }
     });
-
-    // Fonction pour récupérer un cookie
-    function getCookie(name) {
-        let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? match[2] : null;
-    }
 });
