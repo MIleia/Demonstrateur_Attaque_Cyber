@@ -292,7 +292,10 @@ $(document).ready(function () {
     likeButton.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
         if (usermail && songId) {
-            $.post('lib/request.php?action=addLike', { song_id: songId, email: usermail }, function (data) {
+            //recuperation de l'heure actuelle
+            let date = new Date();
+            let time = date.toISOString().slice(0, 19).replace('T', ' ');
+            $.post('lib/request.php?action=addLike', { id_song: songId, mail: usermail, like_date: time }, function (data) {
                 if (data.success) {
                     alert('Ajouté aux favoris');
                 } else {
@@ -302,3 +305,5 @@ $(document).ready(function () {
         }
     });
 });
+
+

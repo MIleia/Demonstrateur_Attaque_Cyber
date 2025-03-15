@@ -87,20 +87,19 @@
     }
 
     // Get the user's username
-function dbGetUserInfos($db, $mail) {
-    try {
-        $request = 'SELECT username FROM users WHERE mail = :mail';
-        $statement = $db->prepare($request);
-        $statement->bindParam(':mail', $mail);
-        $statement->execute();
-        $result = $statement->fetch(PDO::FETCH_ASSOC);
-        return $result;
-    } catch (PDOException $exception) {
-        error_log('Request error: ' . $exception->getMessage());
-        return false;
+    function dbGetUserInfos($db, $mail) {
+        try {
+            $request = 'SELECT username FROM users WHERE mail = :mail';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':mail', $mail);
+            $statement->execute();
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return false;
+        }
     }
-}
-
 
     // Get all the songs from the database
     function dbGetSongs($db) {
@@ -132,29 +131,28 @@ function dbGetUserInfos($db, $mail) {
     }
 
     // Get all songs liked by the user
-function dbGetLikedSongs($db, $mail) {
-    try {
-        $request = 'SELECT * FROM likes WHERE mail=:mail';
-        $statement = $db->prepare($request);
-        $statement->bindParam(':mail', $mail);
-        $statement->execute();
-        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+    function dbGetLikedSongs($db, $mail) {
+        try {
+            $request = 'SELECT * FROM likes WHERE mail=:mail';
+            $statement = $db->prepare($request);
+            $statement->bindParam(':mail', $mail);
+            $statement->execute();
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        // Ajouter un log pour vérifier le contenu de $result
-        if (empty($result)) {
-            error_log("Aucune chanson likée trouvée pour l'email : $mail");
-        } else {
-            error_log("Chansons likées trouvées pour l'email : $mail");
+            // Ajouter un log pour vérifier le contenu de $result
+            if (empty($result)) {
+                error_log("Aucune chanson likée trouvée pour l'email : $mail");
+            } else {
+                error_log("Chansons likées trouvées pour l'email : $mail");
+            }
+
+            return $result;
+        } catch (PDOException $exception) {
+            error_log('Request error: ' . $exception->getMessage());
+            return "Error: " . $exception->getMessage();
         }
-
-        return $result;
-    } catch (PDOException $exception) {
-        error_log('Request error: ' . $exception->getMessage());
-        return "Error: " . $exception->getMessage();
     }
-}
     
-
     // Get album's name via song id
     function dbGetAlbum($db, $id_song) {
         try {
@@ -257,13 +255,22 @@ function dbGetLikedSongs($db, $mail) {
         }
     }
 
+    // function to add a song to the liked songs
+    function dbAddLikedSong($db, $mail, $id_song, $like_date) {
+        try {
+            $stmt = $db->prepare("INSERT INTO likes (mail, id_song, like_date) VALUES (:mail, :id_song, :like_date)");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':id_song', $id_song);
+            $stmt->bindParam(':like_date', $like_date);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbAddLikedSong: " . $e->getMessage());
+            return false;
+        }
+    }    
 
-
-
-
-
-
-
+    // function to get the songs of a playlist
     function dbGetPlaylistSongs($db, $id_playlist) {
         try {
             $stmt = $db->prepare("

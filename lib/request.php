@@ -210,10 +210,21 @@
         }
     }
     
-    
-    
-    
-
+    // function to add a song to a liked song
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
+        if ($_POST["action"] === "addLike") {
+            if (isset($_POST["mail"]) && isset($_POST["id_song"]) && isset($_POST["like_date"])) {
+                $result = dbAddLikedSong($db, $_POST["mail"], $_POST["id_song"], $_POST["like_date"]);
+                if ($result === true) {
+                    echo json_encode(["success" => true]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout de la chanson likée."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
+            }
+        }
+    }    
 
 
 
@@ -236,42 +247,7 @@
         }
     }*/
 
-    
-
-
-
-
-
-
-
-
-
-    
-    if (isset($_POST['action']) && $_POST['action'] == 'addLike') {
-        // Récupérer les données envoyées
-        $songId = $_POST['songId'];
-        $userMail = $_POST['userMail'];
-        
-        // Vérifier si l'utilisateur a déjà liké cette chanson
-        $checkQuery = "SELECT * FROM likes WHERE id_song = ? AND mail = ?";
-        $stmt = $pdo->prepare($checkQuery);
-        $stmt->execute([$songId, $userMail]);
-        
-        if ($stmt->rowCount() == 0) {
-            // Ajouter la chanson dans la table likes
-            $insertQuery = "INSERT INTO likes (id_song, mail) VALUES (?, ?)";
-            $stmt = $pdo->prepare($insertQuery);
-            $stmt->execute([$songId, $userMail]);
-            
-            // Répondre avec succès
-            echo json_encode(['success' => true]);
-        } else {
-            // L'utilisateur a déjà liké cette chanson
-            echo json_encode(['success' => false, 'message' => 'Vous avez déjà liké cette chanson.']);
-        }
-    }
-    
-    
+  
 
     /*
     // Mise à jour du profil
