@@ -1,4 +1,5 @@
 $(document).ready(function () {
+
     // Récupérer les informations de l'utilisateur depuis les cookies
     let username = getCookie('username');
     let profilePicture = getCookie('profile_picture');
@@ -11,13 +12,39 @@ $(document).ready(function () {
         console.log("Nom d'utilisateur introuvable.");
     }
 
-    // Affichage de la photo de profil
-    /*
-    if (profilePicture) {
-        $('#profile-picture').attr('src', profilePicture);
+    // Récupération des musiques favorites
+    if (usermail) {
+        $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function (data) {
+            if (data.success) {
+                let favoriteSongsContainer = $('#favorite-songs-container').empty();
+                $.each(data.songs, function (index, song) {
+                    let songElement = $(`
+                        <div class="card-favorite-song" data-song-id="${song.id_song}">
+                            <img src="${song.picture}" alt="${song.name}" class="card-img">
+                            <p>${song.name}</p>
+                            <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
+                        </div>
+                    `);
+                    favoriteSongsContainer.append(songElement);
+
+                    // Lecture du favori au clic
+                    songElement.click(function () {
+                        playSongById(song.id_song);
+                    });
+
+                    // Suppression d'un favori
+                    songElement.find('.remove-favorite').click(function (event) {
+                        event.stopPropagation();
+                        let songId = $(this).data('song-id');
+                        $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function () {
+                            location.reload();
+                        });
+                    });
+                });
+            }
+        });
     }
-    */
-    
+
     // Récupération des playlists de l'utilisateur
     if (usermail) {
         $.getJSON('lib/request.php?action=getPlaylists', function (data) {
@@ -71,6 +98,7 @@ $(document).ready(function () {
 
                     if (data.songs.length > 0) {
                         for (let song of data.songs) {
+                            // Récupérer le nom de l'artiste si l'ID est présent
                             if (song.id_artist) {
                                 try {
                                     let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
@@ -93,7 +121,7 @@ $(document).ready(function () {
                                 deleteSongFromPlaylist(song.id_song, id_playlist);
                             });
                             songDiv.on('click', function () {
-                                playSong(song.id_song);
+                                playSongById(song.id_song);
                             });
                             songsContainer.append(songDiv);
                         }
@@ -122,7 +150,6 @@ $(document).ready(function () {
     let prevButton = musicFooter.find('button:nth-child(1)');
     let nextButton = musicFooter.find('button:nth-child(3)');
     let likeButton = musicFooter.find('.like-button');
-    let addToPlaylistButton = musicFooter.find('.add-to-playlist-button');
     let audio = new Audio();
     let currentSongIndex = 0;
     let songsList = [];
@@ -133,25 +160,13 @@ $(document).ready(function () {
             let songsElement = $('#songs');
             songsList = data.songs;
 
-            songsList.forEach(async (song, index) => {
-                song.album = song.id_song
-                    ? await $.getJSON(`lib/request.php?action=getAlbumName&id_song=${song.id_song}`)
-                        .then(albumData => albumData.success ? albumData.albumName : "Aucun album")
-                        .catch(() => "Aucun album")
-                    : "Aucun album";
-
-                song.artist = song.id_artist
-                    ? await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`)
-                        .then(artistData => artistData.success ? artistData.artistName : "Artiste inconnu")
-                        .catch(() => "Artiste inconnu")
-                    : "Artiste inconnu";
-
+            songsList.forEach((song, index) => {
                 let songElement = $(`
                     <div class="card-musique">
                         <img src="${song.picture}" alt="${song.name}" class="card-img">
                         <h3 class="card-title">${song.name}</h3>
-                        <h3 class="card-album">${song.album}</h3>
-                        <h3 class="card-singer">${song.artist}</h3>
+                        <h3 class="card-album">${song.album || "Aucun album"}</h3>
+                        <h3 class="card-singer">${song.artist || "Artiste inconnu"}</h3>
                         <h3 class="card-play">
                             <button class="play-button" data-index="${index}">▶️</button>
                         </h3>
@@ -182,6 +197,14 @@ $(document).ready(function () {
         }
     }
 
+    // Fonction pour jouer une chanson à partir de son ID
+    function playSongById(songId) {
+        let song = songsList.find(s => s.id_song == songId);
+        if (song) {
+            playSong(songsList.indexOf(song));
+        }
+    }
+
     // Gestion des boutons précédent/suivant
     prevButton.click(() => {
         currentSongIndex = (currentSongIndex > 0) ? currentSongIndex - 1 : songsList.length - 1;
@@ -196,9 +219,8 @@ $(document).ready(function () {
     // Ajout aux favoris
     likeButton.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
-        let userMail = getCookie('email');
-        if (userMail && songId) {
-            $.post('lib/request.php?action=addLike', { song_id: songId, email: userMail }, function (data) {
+        if (usermail && songId) {
+            $.post('lib/request.php?action=addLike', { song_id: songId, email: usermail }, function (data) {
                 if (data.success) {
                     alert('Chanson ajoutée aux favoris !');
                 } else {
@@ -208,37 +230,9 @@ $(document).ready(function () {
         }
     });
 
-    // Récupérer les musiques favorites
-    if (usermail) {
-        $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function (data) {
-            if (data.success) {
-                let favoriteSongsContainer = $('#favorite-songs-container').empty();
-                $.each(data.songs, function (index, song) {
-                    let songElement = $(`
-                        <div class="card-favorite-song">
-                            <img src="${song.picture}" alt="${song.name}" class="card-img">
-                            <p>${song.name}</p>
-                            <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
-                        </div>
-                    `);
-                    favoriteSongsContainer.append(songElement);
-                });
-
-                $('.remove-favorite').click(function () {
-                    let songId = $(this).data('song-id');
-                    $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function () {
-                        location.reload();
-                    });
-                });
-            }
-        });
-    }
-
     // Fonction pour récupérer un cookie
     function getCookie(name) {
         let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
         return match ? match[2] : null;
     }
 });
-
-
