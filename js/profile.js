@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    // Récupération des cookies utilisateur
+    // Get cookie by name
     function getCookie(name) {
         let matches = document.cookie.match(new RegExp(
             "(?:^|; )" + name.replace(/([.$?*|{}\(\)\[\]\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -7,15 +7,15 @@ $(document).ready(function () {
         return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 
-    let userMail = getCookie("mail");  // On récupère le mail de l'utilisateur depuis les cookies
+    let userMail = getCookie("mail");
 
-    // Vérifier si l'utilisateur est connecté
+    // Check if user is connected
     if (!userMail) {
         alert("Utilisateur non authentifié !");
         window.location.href = "login.html";
     }
 
-    // Soumission du formulaire de mise à jour du profil
+    // Update profile
     $("#updateProfileForm").on("submit", function (event) {
         event.preventDefault();
     
@@ -62,14 +62,14 @@ $(document).ready(function () {
             }
         });
 
-        // effacer les champs du formulaire
+        // Clear form fields
         $("#password").val("");
         $("#confirmPassword").val("");
         $("#profile_picture").val("");
     });
     
 
-    // Suppression du compte
+    // Delete account
     $("#deleteAccountBtn").on("click", function () {
         if (confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
             let userMail = getCookie("mail");
@@ -85,10 +85,10 @@ $(document).ready(function () {
                 data: JSON.stringify({ action: "deleteAccount", mail: userMail }),
                 contentType: "application/json",
                 success: function (data) {
-                    data = JSON.parse(data); // Assurez-vous que la réponse est bien parsée
+                    data = JSON.parse(data);
                     alert(data.message);
                     if (data.success) {
-                        window.location.href = "login.html"; // Redirige après suppression
+                        window.location.href = "login.html";
                     }
                 },
                 error: function () {
@@ -98,7 +98,7 @@ $(document).ready(function () {
         }
     });
     
-
+    // Get user data
     let username = getCookie("username");
     let profilePicture = getCookie("profile_picture");
 

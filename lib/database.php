@@ -347,10 +347,16 @@
     // function to create a new playlist
     function dbCreatePlaylist($db, $mail, $name) {
         try {
-            $stmt = $db->prepare("INSERT INTO playlist (mail, name) VALUES (:mail, :name)");
-            $stmt->bindParam(':mail', $mail);
+            $decodedMail = urldecode($mail); 
+            $checkUserStmt = $db->prepare("SELECT COUNT(*) FROM users WHERE mail = :mail");
+            $checkUserStmt->bindParam(':mail', $decodedMail);
+            $checkUserStmt->execute();
+            $userExists = $checkUserStmt->fetchColumn();
+            $stmt = $db->prepare("INSERT INTO playlist (mail, playlist_name) VALUES (:mail, :name)");
+            $stmt->bindParam(':mail', $decodedMail);
             $stmt->bindParam(':name', $name);
             $stmt->execute();
+            error_log("DEBUG: Playlist '$name' ajoutée pour $decodedMail.");
             return true;
         } catch (PDOException $e) {
             error_log("Erreur dbCreatePlaylist: " . $e->getMessage());

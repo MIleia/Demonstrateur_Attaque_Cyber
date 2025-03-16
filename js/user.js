@@ -61,13 +61,22 @@ $(document).ready(function () {
                             <div class="card-content">
                                 <h3 class="card-title">${playlist.playlist_name}</h3>
                             </div>
+                            <button class="delete-playlist-button" data-playlist-id="${playlist.id_playlist}">❌</button> <!-- Bouton suppression -->
                         </div>
                     `);
                     playlistElement.click(function () {
                         showPlaylistSongs(playlist.id_playlist, playlist.playlist_name);
                     });
+
+                    // Ajout du bouton de suppression
+                    playlistElement.find('.delete-playlist-button').on('click', function (e) {
+                        e.stopPropagation();  // Empêche la propagation du clic (pour ne pas ouvrir la playlist)
+                        deletePlaylist(playlist.id_playlist);
+                    });
+
                     playlistsElement.append(playlistElement);
                 });
+
                 let createPlaylistElement = $(`
                     <div class="card-playlist">
                         <div class="card-content">
@@ -78,15 +87,23 @@ $(document).ready(function () {
                 createPlaylistElement.click(() => {
                     let playlistName = prompt('Nom de la playlist :');
                     if (playlistName) {
-                        $.post('lib/request.php?action=createPlaylist', { mail: usermail, playlist_name: playlistName }, function (data) {
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert('Erreur lors de la création de la playlist.');
+                        $.post('lib/request.php?action=createPlaylist', { mail: usermail, playlist_name: playlistName }, function (response) {
+                            console.log("Réponse serveur :", response);  // DEBUG: Vérifier la réponse brute
+                            try {
+                                let data = JSON.parse(response);  // Convertir en JSON
+                                if (data.success) {
+                                    location.reload();
+                                } else {
+                                    alert('Erreur lors de la création de la playlist: ' + data.message);
+                                }
+                            } catch (e) {
+                                console.error("Erreur JSON :", e, response);
                             }
+                        }).fail((xhr, status, error) => {
+                            console.error("Erreur AJAX :", status, error);
                         });
                     }
-                });
+                });                
                 playlistsElement.append(createPlaylistElement);
             } else {
                 console.error('Erreur lors de la récupération des playlists');
@@ -95,6 +112,7 @@ $(document).ready(function () {
     } else {
         console.log("Utilisateur non connecté.");
     }
+
 
     // Fonction pour afficher les chansons d'une playlist
     function showPlaylistSongs(id_playlist, playlistName) {
@@ -324,6 +342,27 @@ $(document).ready(function () {
             });
         }
     });
+
+    function deletePlaylist(id_playlist) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette playlist ?')) {
+            $.post('lib/request.php?action=deletePlaylist', { id_playlist: id_playlist }, function (response) {
+                console.log("Réponse brute serveur :", response);  // Log de la réponse brute pour vérifier
+                try {
+                    let data = JSON.parse(response);  // Convertir en JSON
+                    if (data.success) {
+                        location.reload();  // Recharger la page pour mettre à jour la liste des playlists
+                    } else {
+                        alert('Erreur lors de la suppression de la playlist: ' + data.message);
+                    }
+                } catch (e) {
+                    console.error("Erreur JSON :", e, response);
+                }
+            }).fail((xhr, status, error) => {
+                console.error("Erreur AJAX :", status, error);
+            });
+        }
+    }
+      
 });
 
 

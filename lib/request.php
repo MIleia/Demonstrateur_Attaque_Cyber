@@ -303,9 +303,17 @@
     }
 
     // function to create a new playlist
-    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "createPlaylist") {
-        if (isset($_POST["mail"]) && isset($_POST["name"])) {
-            $result = dbCreatePlaylist($db, $_POST["mail"], $_POST["name"]);
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET["action"]) && $_GET["action"] === "createPlaylist") {
+        if (isset($_POST["mail"]) && isset($_POST["playlist_name"])) {  
+            if (isset($_POST["playlist_name"]) && !empty(trim($_POST["playlist_name"]))) {  
+                $playlistName = trim($_POST["playlist_name"]);
+                error_log("DEBUG: Nom de playlist reçu -> " . $playlistName);
+            } else {
+                echo json_encode(["success" => false, "message" => "Le nom de la playlist ne peut pas être vide."]);
+                exit;
+            }
+            
+            $result = dbCreatePlaylist($db, $_POST["mail"], $_POST["playlist_name"]);
             if ($result === true) {
                 echo json_encode(["success" => true]);
             } else {
@@ -314,7 +322,7 @@
         } else {
             echo json_encode(["success" => false, "message" => "Mail ou nom de la playlist non fourni."]);
         }
-    }
+    } 
 
     // function to delete a playlist
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "deletePlaylist") {
@@ -328,7 +336,7 @@
         } else {
             echo json_encode(["success" => false, "message" => "Identifiant de la playlist non fourni."]);
         }
-    }
+    } 
 ?>
 
 

@@ -6,19 +6,19 @@ $(document).ready(function () {
         let password = $("#password").val().trim();
         let errorMessage = $("#error-message");
 
-        // Vérifier si les champs sont vides
+        // Check if email and password are not empty
         if (email === "" || password === "") {
             errorMessage.text("Veuillez remplir tous les champs.").css("color", "red");
             return;
         }
 
-        // Création de l'objet FormData
+        // Create a FormData object
         let formData = new FormData();
         formData.append("action", "login");
         formData.append("email", email);
         formData.append("password", password);
 
-        // Envoi de la requête AJAX avec jQuery
+        // Send AJAX request
         $.ajax({
             url: "lib/request.php",
             type: "POST",
@@ -46,7 +46,5 @@ $(document).ready(function () {
         });
     });
 });
-
-// If user is already connected, redirect to user page
 
 
