@@ -288,72 +288,88 @@
         }
     }
     
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    function updateProfile($mail, $username, $password = null, $profilePicture = null) {
-        $conn = dbConnect();
-        $sql = "UPDATE users SET username = ?";
-        
-        if ($password) {
-            $sql .= ", password = ?";
-        }
-    
-        if ($profilePicture) {
-            $targetDir = "uploads/";
-            $targetFile = $targetDir . basename($profilePicture['name']);
-            move_uploaded_file($profilePicture['tmp_name'], $targetFile);
-            $sql .= ", profile_picture = ?";
-        }
-    
-        $sql .= " WHERE mail = ?";
-    
-        $stmt = $conn->prepare($sql);
-    
-        if ($password && $profilePicture) {
-            $stmt->bind_param("ssss", $username, $password, $targetFile, $mail);
-        } elseif ($password) {
-            $stmt->bind_param("sss", $username, $password, $mail);
-        } elseif ($profilePicture) {
-            $stmt->bind_param("sss", $username, $targetFile, $mail);
-        } else {
-            $stmt->bind_param("ss", $username, $mail);
-        }
-    
-        if ($stmt->execute()) {
-            return ['success' => true, 'message' => 'Profil mis à jour avec succès.'];
-        } else {
-            return ['success' => false, 'message' => 'Erreur lors de la mise à jour du profil.'];
+    // function to update the profile picture of a user
+    function dbUpdateProfilePicture($db, $mail, $profile_picture) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET profile_picture = :profile_picture WHERE mail = :mail");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':profile_picture', $profile_picture);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbUpdateProfilePicture: " . $e->getMessage());
+            return false;
         }
     }
-    
-    // Supprimer un compte utilisateur
-    function deleteAccount($mail) {
-        $conn = dbConnect();
-        $sql = "DELETE FROM users WHERE mail = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $mail);
-    
-        if ($stmt->execute()) {
-            return ['success' => true, 'message' => 'Compte supprimé avec succès.'];
-        } else {
-            return ['success' => false, 'message' => 'Erreur lors de la suppression du compte.'];
+
+    // function to update the username of a user
+    function dbUpdateUsername($db, $mail, $username) {
+        try {
+            $stmt = $db->prepare("UPDATE users SET username = :username WHERE mail = :mail");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbUpdateUsername: " . $e->getMessage());
+            return false;
         }
     }
-        */
+
+    // function to update the password of a user
+    function dbUpdatePassword($db, $mail, $password) {
+        try {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET password = :password WHERE mail = :mail");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':password', $hash);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbUpdatePassword: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // function to delete a user
+    function dbDeleteUser($db, $mail) {
+        try {
+            $stmt = $db->prepare("DELETE FROM users WHERE mail = :mail");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbDeleteUser: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // function to create a new playlist
+    function dbCreatePlaylist($db, $mail, $name) {
+        try {
+            $stmt = $db->prepare("INSERT INTO playlist (mail, name) VALUES (:mail, :name)");
+            $stmt->bindParam(':mail', $mail);
+            $stmt->bindParam(':name', $name);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbCreatePlaylist: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // function to delete a playlist
+    function dbDeletePlaylist($db, $id_playlist) {
+        try {
+            $stmt = $db->prepare("DELETE FROM playlist WHERE id_playlist = :id_playlist");
+            $stmt->bindParam(':id_playlist', $id_playlist);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbDeletePlaylist: " . $e->getMessage());
+            return false;
+        }
+    }
 ?>
 
 

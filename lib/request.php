@@ -226,12 +226,6 @@
         }
     }    
 
-
-
-
-
-
-
     // funnction to remove a song from a playlist
     /*
     if ($_POST['action'] == 'removeSongFromPlaylist') {
@@ -246,42 +240,95 @@
             echo json_encode(["success" => false, "message" => "Identifiant de la playlist ou de la chanson non fourni."]);
         }
     }*/
-
-  
-
-    /*
-    // Mise à jour du profil
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] == 'updateProfile') {
-        if ($userMail) {
-            $username = $_POST['username'];
-            $password = $_POST['password'];
-            $profilePicture = isset($_FILES['profile_picture']) ? $_FILES['profile_picture'] : null;
-
-            // Hash du mot de passe si un nouveau mot de passe est fourni
-            if (!empty($password)) {
-                $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+    
+    // Update user's profile
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "updateProfile") {
+        $mail = $_POST["mail"] ?? null;
+        $username = $_POST["username"] ?? null;
+        $password = $_POST["password"] ?? null;
+        $profilePicture = $_FILES["profile_picture"] ?? null; // Pour gérer un fichier
+    
+        if (!$mail) {
+            echo json_encode(["success" => false, "message" => "Adresse mail requise."]);
+            exit;
+        }
+    
+        $success = false;
+    
+        if ($username) {
+            $success = dbUpdateUsername($db, $mail, $username);
+        }
+    
+        if ($password) {
+            $success = dbUpdatePassword($db, $mail, $password);
+        }
+    
+        if ($profilePicture) {
+            // Gestion de l'upload
+            $targetDir = "../uploads/";
+            $fileName = basename($profilePicture["name"]);
+            $targetFilePath = $targetDir . $fileName;
+    
+            if (move_uploaded_file($profilePicture["tmp_name"], $targetFilePath)) {
+                $success = dbUpdateProfilePicture($db, $mail, $targetFilePath);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors du téléchargement de l'image."]);
+                exit;
             }
-
-            // Mise à jour du nom d'utilisateur et du mot de passe
-            $result = updateProfile($userMail, $username, isset($passwordHash) ? $passwordHash : null, $profilePicture);
-
-            echo json_encode($result);
+        }
+    
+        if ($success) {
+            echo json_encode(["success" => true, "message" => "Profil mis à jour avec succès."]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Utilisateur non connecté.']);
+            echo json_encode(["success" => false, "message" => "Erreur lors de la mise à jour du profil."]);
         }
     }
 
-    // Suppression du compte
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] == 'deleteAccount') {
-        if ($userMail) {
-            $result = deleteAccount($userMail);
-            echo json_encode($result);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Utilisateur non connecté.']);
+    // function to delete a user
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $data = json_decode(file_get_contents("php://input"), true);
+    
+        if (isset($data["action"]) && $data["action"] === "deleteAccount") {
+            if (isset($data["mail"])) {
+                $result = dbDeleteUser($db, $data["mail"]);
+                if ($result === true) {
+                    echo json_encode(["success" => true, "message" => "Compte supprimé avec succès."]);
+                } else {
+                    echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de l'utilisateur."]);
+                }
+            } else {
+                echo json_encode(["success" => false, "message" => "Mail non fourni."]);
+            }
         }
     }
-    */
 
+    // function to create a new playlist
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "createPlaylist") {
+        if (isset($_POST["mail"]) && isset($_POST["name"])) {
+            $result = dbCreatePlaylist($db, $_POST["mail"], $_POST["name"]);
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de la création de la playlist."]);
+            }
+        } else {
+            echo json_encode(["success" => false, "message" => "Mail ou nom de la playlist non fourni."]);
+        }
+    }
+
+    // function to delete a playlist
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "deletePlaylist") {
+        if (isset($_POST["id_playlist"])) {
+            $result = dbDeletePlaylist($db, $_POST["id_playlist"]);
+            if ($result === true) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de la playlist."]);
+            }
+        } else {
+            echo json_encode(["success" => false, "message" => "Identifiant de la playlist non fourni."]);
+        }
+    }
 ?>
 
 

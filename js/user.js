@@ -68,6 +68,26 @@ $(document).ready(function () {
                     });
                     playlistsElement.append(playlistElement);
                 });
+                let createPlaylistElement = $(`
+                    <div class="card-playlist">
+                        <div class="card-content">
+                            <h3 class="card-title">➕</h3>
+                        </div>
+                    </div>
+                `);
+                createPlaylistElement.click(() => {
+                    let playlistName = prompt('Nom de la playlist :');
+                    if (playlistName) {
+                        $.post('lib/request.php?action=createPlaylist', { mail: usermail, playlist_name: playlistName }, function (data) {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Erreur lors de la création de la playlist.');
+                            }
+                        });
+                    }
+                });
+                playlistsElement.append(createPlaylistElement);
             } else {
                 console.error('Erreur lors de la récupération des playlists');
             }
@@ -292,10 +312,10 @@ $(document).ready(function () {
     likeButton.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
         if (usermail && songId) {
-            //recuperation de l'heure actuelle
-            let date = new Date();
-            let time = date.toISOString().slice(0, 19).replace('T', ' ');
-            $.post('lib/request.php?action=addLike', { id_song: songId, mail: usermail, like_date: time }, function (data) {
+            // Récupérer la date actuelle 'Y-m-d H:i:s'
+            let like_date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+            $.post('lib/request.php?action=addLike', { mail: usermail, id_song: songId, like_date: like_date }, function (data) {
                 if (data.success) {
                     alert('Ajouté aux favoris');
                 } else {
