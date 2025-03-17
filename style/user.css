@@ -187,26 +187,40 @@ h2, h3 {
     cursor: pointer;
     transition: transform 0.3s, box-shadow 0.3s;
     text-align: center;
-    position: relative;
 }
 
-.card-playlist .delete-playlist-button {
+.delete-playlist-button {
+    display: none;
     position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    padding: 5px 10px;
+    top: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    background-color: rgba(255, 0, 0, 0.7);
     border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 18px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease-in-out;
 }
 
-.card-playlist .delete-playlist-button:hover {
-    background-color: #d32f2f;
+.card-playlist:hover .delete-playlist-button {
+    display: block;
 }
+
+.delete-playlist-button:hover {
+    background-color: red;
+    transform: scale(1.2) rotate(10deg);
+}
+
+.delete-playlist-button::before {
+    content: "✖";
+    display: block;
+}
+
 
 /* Musiques */
 .musique {

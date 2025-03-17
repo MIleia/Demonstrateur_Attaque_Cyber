@@ -356,7 +356,6 @@
             $stmt->bindParam(':mail', $decodedMail);
             $stmt->bindParam(':name', $name);
             $stmt->execute();
-            error_log("DEBUG: Playlist '$name' ajoutée pour $decodedMail.");
             return true;
         } catch (PDOException $e) {
             error_log("Erreur dbCreatePlaylist: " . $e->getMessage());
@@ -373,6 +372,20 @@
             return true;
         } catch (PDOException $e) {
             error_log("Erreur dbDeletePlaylist: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // function to delete a song from a playlist
+    function dbDeleteSongFromPlaylist($db, $id_playlist, $id_song) {
+        try {
+            $stmt = $db->prepare("DELETE FROM playlist_songs WHERE id_playlist = :id_playlist AND id_song = :id_song");
+            $stmt->bindParam(':id_playlist', $id_playlist);
+            $stmt->bindParam(':id_song', $id_song);
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Erreur dbRemoveSongFromPlaylist: " . $e->getMessage());
             return false;
         }
     }

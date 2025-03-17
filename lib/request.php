@@ -224,23 +224,22 @@
                 echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
             }
         }
-    }    
-
-    // funnction to remove a song from a playlist
+    }
     /*
-    if ($_POST['action'] == 'removeSongFromPlaylist') {
-        if (isset($_POST['id_playlist']) && isset($_POST['id_song'])) {
-            $result = dbRemoveSongFromPlaylist($db, $_POST['id_playlist'], $_POST['id_song']);
+    // funnction to remove a song from a playlist
+    if ($_POST['action'] == 'deleteSongFromPlaylist') {
+        if (isset($_POST['id_song']) && isset($_POST['id_playlist'])) {
+            $result = dbDeleteSongFromPlaylist($db, $_POST['id_song'], $_POST['id_playlist']);
             if ($result === true) {
                 echo json_encode(["success" => true]);
             } else {
                 echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de la chanson de la playlist."]);
             }
         } else {
-            echo json_encode(["success" => false, "message" => "Identifiant de la playlist ou de la chanson non fourni."]);
+            echo json_encode(["success" => false, "message" => "Identifiant de la chanson ou de la playlist non fourni."]);
         }
-    }*/
-    
+    }
+    */
     // Update user's profile
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "updateProfile") {
         $mail = $_POST["mail"] ?? null;
@@ -307,7 +306,6 @@
         if (isset($_POST["mail"]) && isset($_POST["playlist_name"])) {  
             if (isset($_POST["playlist_name"]) && !empty(trim($_POST["playlist_name"]))) {  
                 $playlistName = trim($_POST["playlist_name"]);
-                error_log("DEBUG: Nom de playlist reçu -> " . $playlistName);
             } else {
                 echo json_encode(["success" => false, "message" => "Le nom de la playlist ne peut pas être vide."]);
                 exit;
@@ -325,9 +323,10 @@
     } 
 
     // function to delete a playlist
-    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "deletePlaylist") {
-        if (isset($_POST["id_playlist"])) {
-            $result = dbDeletePlaylist($db, $_POST["id_playlist"]);
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "deletePlaylist") {
+        if (isset($_GET["id_playlist"])) {
+            $id_playlist = $_GET["id_playlist"];
+            $result = dbDeletePlaylist($db, $id_playlist);
             if ($result === true) {
                 echo json_encode(["success" => true]);
             } else {
@@ -336,7 +335,9 @@
         } else {
             echo json_encode(["success" => false, "message" => "Identifiant de la playlist non fourni."]);
         }
-    } 
+    }
+    
+
 ?>
 
 

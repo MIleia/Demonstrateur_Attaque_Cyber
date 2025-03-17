@@ -60,18 +60,22 @@ $(document).ready(function () {
                         <div class="card-playlist">
                             <div class="card-content">
                                 <h3 class="card-title">${playlist.playlist_name}</h3>
+                                <div class="delete-container">
+                                    <button class="delete-playlist-button"></button>
+                                </div>
                             </div>
-                            <button class="delete-playlist-button" data-playlist-id="${playlist.id_playlist}">❌</button> <!-- Bouton suppression -->
                         </div>
                     `);
                     playlistElement.click(function () {
                         showPlaylistSongs(playlist.id_playlist, playlist.playlist_name);
                     });
 
-                    // Ajout du bouton de suppression
+                    // Ajout d'un gestionnaire pour le bouton de suppression de playlist
                     playlistElement.find('.delete-playlist-button').on('click', function (e) {
-                        e.stopPropagation();  // Empêche la propagation du clic (pour ne pas ouvrir la playlist)
-                        deletePlaylist(playlist.id_playlist);
+                        e.stopPropagation(); // Empêche le click sur le card de la playlist
+                        if (confirm('Êtes-vous sûr de vouloir supprimer cette playlist ?')) {
+                            deletePlaylist(playlist.id_playlist);
+                        }
                     });
 
                     playlistsElement.append(playlistElement);
@@ -84,14 +88,15 @@ $(document).ready(function () {
                         </div>
                     </div>
                 `);
+
                 createPlaylistElement.click(() => {
                     let playlistName = prompt('Nom de la playlist :');
                     if (playlistName) {
                         $.post('lib/request.php?action=createPlaylist', { mail: usermail, playlist_name: playlistName }, function (response) {
-                            console.log("Réponse serveur :", response);  // DEBUG: Vérifier la réponse brute
                             try {
-                                let data = JSON.parse(response);  // Convertir en JSON
+                                let data = JSON.parse(response);
                                 if (data.success) {
+                                    // Actualiser la liste des playlists uniquement et non la page entière
                                     location.reload();
                                 } else {
                                     alert('Erreur lors de la création de la playlist: ' + data.message);
@@ -103,7 +108,8 @@ $(document).ready(function () {
                             console.error("Erreur AJAX :", status, error);
                         });
                     }
-                });                
+                });
+
                 playlistsElement.append(createPlaylistElement);
             } else {
                 console.error('Erreur lors de la récupération des playlists');
@@ -113,6 +119,15 @@ $(document).ready(function () {
         console.log("Utilisateur non connecté.");
     }
 
+    // Fonction pour supprimer une playlist
+    function deletePlaylist(id_playlist) {
+        $.get(`lib/request.php?action=deletePlaylist&id_playlist=${id_playlist}`, function (data) {  
+        // Actualiser uniquement la liste des playlists et non la page entière
+        location.reload();
+        }).fail((xhr, status, error) => {
+            console.error("Erreur AJAX lors de la suppression de la playlist :", status, error);
+        });
+    }
 
     // Fonction pour afficher les chansons d'une playlist
     function showPlaylistSongs(id_playlist, playlistName) {
@@ -343,26 +358,15 @@ $(document).ready(function () {
         }
     });
 
-    function deletePlaylist(id_playlist) {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette playlist ?')) {
-            $.post('lib/request.php?action=deletePlaylist', { id_playlist: id_playlist }, function (response) {
-                console.log("Réponse brute serveur :", response);  // Log de la réponse brute pour vérifier
-                try {
-                    let data = JSON.parse(response);  // Convertir en JSON
-                    if (data.success) {
-                        location.reload();  // Recharger la page pour mettre à jour la liste des playlists
-                    } else {
-                        alert('Erreur lors de la suppression de la playlist: ' + data.message);
-                    }
-                } catch (e) {
-                    console.error("Erreur JSON :", e, response);
-                }
-            }).fail((xhr, status, error) => {
-                console.error("Erreur AJAX :", status, error);
-            });
-        }
+    // Fonction pour supprimer une chanson d'une playlist
+    function deleteSongFromPlaylist(id_song, id_playlist) {
+        $.get(`lib/request.php?action=deleteSongFromPlaylist&id_song=${id_song}&id_playlist=${id_playlist}`, function (data) {
+            console.log(data);
+        }).fail((xhr, status, error) => {
+            console.error("Erreur AJAX lors de la suppression de la chanson de la playlist :", status, error);
+        });
     }
-      
+    
 });
 
 
