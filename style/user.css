@@ -147,8 +147,6 @@ h2, h3 {
     transform: scale(1.2);
 }
 
-
-
 .card-favorite-song p {
     font-size: 14px;
     font-weight: bold;
@@ -355,25 +353,9 @@ h2, h3 {
 }
 
 .house-image img {
-    width: 150px;
-    height: 150px;
+    width: 100px;
+    height: 100px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 .modal {
     position: fixed;
@@ -400,9 +382,7 @@ h2, h3 {
     margin-bottom: 10px;
 }
 
-
-
-/* 🎵 Style des chansons */
+/* Style des chansons */
 .playlist-song {
     padding: 8px;
     margin: 5px 0;
