@@ -433,9 +433,7 @@ $(document).ready(function () {
     likeButton.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
         if (usermail && songId) {
-            // Récupérer la date actuelle 'Y-m-d H:i:s'
             let like_date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
             $.post('lib/request.php?action=addLike', { mail: usermail, id_song: songId, like_date: like_date }, function (data) {
                 if (data.success) {
                     alert('Ajouté aux favoris');
