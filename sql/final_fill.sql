@@ -149,16 +149,16 @@ INSERT INTO album (name) VALUES
 -- Insertion des chansons
 -- La colonne "time" indique la durée de la chanson au format HH:MM:SS
 INSERT INTO songs (name, song, time, picture, id_artist) VALUES
-('Wake Me Up', 'avicci_wake_me_up.mp3', '00:04:10', 'images/wake_me_up.jpg', 1),
-('Levels', 'avicci_levels.mp3', '00:03:30', 'images/levels.jpg', 1),
-('Scared to Be Lonely', 'scared_to_be_lonely.mp3', '00:03:45', 'images/scared_to_be_lonely.jpg', 2),
-('Animals', 'animals.mp3', '00:04:00', 'images/animals.jpg', 2),
-('Summer', 'summer.mp3', '00:03:20', 'images/summer.png', 3),
-('Feel So Close', 'feel_so_close.mp3', '00:03:15', 'images/feel_so_close.jpg', 3),
+('Wake Me Up', 'avicci_wake_me_up.mp3', '00:04:32', 'images/wake_me_up.jpg', 1),
+('Levels', 'avicci_levels.mp3', '00:03:18', 'images/levels.jpg', 1),
+('Scared to Be Lonely', 'scared_to_be_lonely.mp3', '00:03:41', 'images/scared_to_be_lonely.jpg', 2),
+('Animals', 'animals.mp3', '00:03:11', 'images/animals.jpg', 2),
+('Summer', 'summer.mp3', '00:03:53', 'images/summer.png', 3),
+('Feel So Close', 'feel_so_close.mp3', '00:04:06', 'images/feel_so_close.jpg', 3),
 ('Titanium', 'titanium.mp3', '00:04:05', 'images/titanium.jpg', 4),
-('Play Hard', 'play_hard.mp3', '00:03:50', 'images/play_hard.jpg', 4),
-('Firestone', 'firestone.mp3', '00:03:40', 'images/firestone.jpg', 5),
-('Stole the Show', 'stole_the_show.mp3', '00:04:00', 'images/stole_the_show.jpg', 5);
+('Play Hard', 'play_hard.mp3', '00:04:01', 'images/play_hard.jpg', 4),
+('Firestone', 'firestone.mp3', '00:04:34', 'images/firestone.jpg', 5),
+('Stole the Show', 'stole_the_show.mp3', '00:03:38', 'images/stole_the_show.jpg', 5);
 
 -- Associer des chansons aux albums
 INSERT INTO appartient (id_song, id_album) VALUES
