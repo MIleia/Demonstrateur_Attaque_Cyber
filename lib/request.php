@@ -39,10 +39,13 @@
             $password = $_POST["password"];
             $result = dbGetUser($db, $email, $password);
             if ($result !== "error") {
-                // Définition des cookies pour stocker le nom et prénom (valide pour 1 jour)
+                /*
                 setcookie("username", $result['username'], time() + 86400, "/");
                 setcookie("mail", $result['mail'], time() + 86400, "/");
-                setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");
+                setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");*/
+                setcookie("mail", $email, time() + 3600, "/");
+                setcookie("username", $result['username'], time() + 3600, "/");
+                setcookie("profile_picture", $result['profile_picture'], time() + 3600, "/");
             
                 echo json_encode(["success" => true, "user" => $result]);
             } else {
@@ -380,4 +383,227 @@
     }
 ?>
 
+<?php
+    /*----Live Search----*/
+    function live_search($db, $input) {
+        $queries = [
+            "users" => "SELECT mail, username FROM users WHERE username LIKE '%$input%' OR mail LIKE '%$input%'",        
+            "songs" => "SELECT id_song, name, song FROM songs WHERE id_song LIKE '%$input%' OR name LIKE '%$input%' OR song LIKE '%$input%'",
+            "playlist" => "SELECT id_playlist, playlist_name, mail FROM playlist WHERE id_playlist LIKE '%$input%' OR playlist_name LIKE '%$input%' OR mail LIKE '%$input%'",
+            "likes" => "SELECT id_song, mail FROM likes WHERE id_song LIKE '%$input%' OR mail LIKE '%$input%'",
+            "comment" => "SELECT mail, id_song, comment FROM comment WHERE mail LIKE '%$input%' OR id_song LIKE '%$input%' OR comment LIKE '%$input%'",
+            "artist" => "SELECT id_artist, mail FROM artist WHERE id_artist LIKE '%$input%' OR mail LIKE '%$input%'",
+            "appartient" => "SELECT id_song, id_album FROM appartient WHERE id_song LIKE '%$input%' OR id_album LIKE '%$input%'",
+            "album" => "SELECT id_album, name FROM album WHERE id_album LIKE '%$input%' OR name LIKE '%$input%'",
+            "admin" => "SELECT id_admin, mail FROM admin WHERE id_admin LIKE '%$input%' OR mail LIKE '%$input%'"
+        ];
+    
+        $results_found = false;
+    
+        foreach ($queries as $table => $sql) {
+            $result = mysqli_query($db, $sql);
+            
+            if (mysqli_num_rows($result) > 0) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    // Récupérer les valeurs
+                    $email = $row['mail'] ?? "";
+                    $id_song = $row['id_song'] ?? "";
+                    $id_album = $row['id_album'] ?? "";
+    
+                    echo "<p class='search-result' data-table='$table' data-email='$email' data-id_song='$id_song' data-id_album='$id_album'>";
+                    foreach ($row as $column => $value) {
+                        $highlighted = str_ireplace($input, "<span class='highlight'>$input</span>", $value);
+                        echo "$highlighted ";
+                    }
+                    echo "</p>";
+                }
+                $results_found = true;
+            }
+        }
+        if (!$results_found) {
+            echo "<p>Aucun résultat trouvé</p>";
+        }
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == "live_search") {
+        $input = $_POST['search'];
+        live_search($db, $input);
+    }
+
+    function add_details($db, $table, $email, $id_song, $id_album) {
+        if($email != ''){
+            //on recupere le id_song et id_album
+        }
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == "add_details") {
+        $table = $_POST['table'];
+        $email = $_POST['email'];
+        $id_song = $_POST['id_song'];
+        $id_album = $_POST['id_album'];
+
+        add_details($db, $table, $email, $id_song, $id_album);
+
+        echo "Table: " . htmlspecialchars($table) . "<br>";
+        echo "Email: " . htmlspecialchars($email). "<br>";
+        echo "Id song: " . htmlspecialchars($id_song) . "<br>";
+        echo "Id album: " . htmlspecialchars($id_album);
+    }
+
+
+    /*----tab choose----*/
+
+    function load_tab_data($db, $input){
+
+        $sql = "SELECT * FROM $input ";
+        $result = mysqli_query($db, $sql);
+
+        if($input == "users"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Mail (PK)</th><th>username</th><th>password</th><th>profile_picture</th></tr></thead>"; 
+                while ($row = mysqli_fetch_assoc($result)) { 
+                    echo "<tr>";            
+                    echo "<th>$row[mail]</th>";
+                    echo "<td> $row[username] </td>";
+                    echo "<td> $row[password] </td>";
+                    echo "<td> $row[profile_picture] </td>";
+                    echo "</tr>";
+                }
+            }
+            echo "</table>";
+        }
+        elseif($input == "songs"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_song</th><th>name</th><th>song</th><th>picture</th><th>Id_artist</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th scope=\"row\">$row[id_song]</th>";
+                    echo "<td> $row[name] </td>";
+                    echo "<td> $row[song] </td>";
+                    echo "<td> $row[picture] </td>";
+                    echo "<td> $row[id_artist] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "playlist_songs"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_song</th><th>Id_playlist</th><th>Add_date</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_song]</th>";
+                    echo "<td> $row[id_playlist] </td>";
+                    echo "<td> $row[add_date] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "playlist"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>id_playlist</th><th>playlist_name</th><th>mail</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_playlist]</th>";
+                    echo "<td> $row[playlist_name] </td>";
+                    echo "<td> $row[mail] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "likes"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_song</th><th>Mail</th><th>Like_date</th><th>Notice</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_song]</th>";
+                    echo "<td> $row[mail] </td>";
+                    echo "<td> $row[like_date] </td>";
+                    echo "<td> $row[notice] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "comment"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Mail</th><th>Id_song</th><th>Comment</th><th>Comment_date</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[mail]</th>";
+                    echo "<td> $row[id_song] </td>";
+                    echo "<td> $row[comment] </td>";
+                    echo "<td> $row[comment_date] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "artist"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_artist</th><th>Mail</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_artist]</th>";
+                    echo "<td> $row[mail] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "appartient"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_song</th><th>Id_album</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_song]</th>";
+                    echo "<td> $row[id_album] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "album"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_album</th><th>Name</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_album]</th>";
+                    echo "<td> $row[name] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+        elseif($input == "admin"){
+            if (mysqli_num_rows($result) > 0) {
+                echo "<table>";
+                echo "<thead><tr><th>Id_admin</th><th>Mail</th></tr></thead>";
+                while ($row = mysqli_fetch_assoc($result)) {  
+                    echo "<tr>";            
+                    echo "<th>$row[id_admin]</th>";
+                    echo "<td> $row[mail] </td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+            }
+        }
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == "load_tab_data") {
+        $input = $_POST['tableau-option'];
+        load_tab_data($db, $input);
+    }
+?>
 

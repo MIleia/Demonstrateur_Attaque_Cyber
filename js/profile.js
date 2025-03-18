@@ -9,9 +9,8 @@ $(document).ready(function () {
 
     let userMail = getCookie("mail");
 
-    // Check if user is connected
+    // Check if the user is connected
     if (!userMail) {
-        alert("Utilisateur non authentifié !");
         window.location.href = "login.html";
     }
 

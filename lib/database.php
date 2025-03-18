@@ -1,7 +1,7 @@
 <?php
     include 'config.php';
 
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    //mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
     /*
     // Connection to the mysql database
@@ -805,6 +805,7 @@
         mysqli_stmt_bind_param($stmt, 'ss', $mail, $name);
         return mysqli_stmt_execute($stmt);
     }
+    
 
     // Function to delete a playlist
     function dbDeletePlaylist($db, $id_playlist) {

@@ -126,11 +126,11 @@ INSERT INTO admin (mail) VALUES
 
 -- Insertion des artistes EDM (les artistes sont également des utilisateurs)
 INSERT INTO users (mail, username, password, profile_picture) VALUES
-('avicii@artist.com', 'Avicii', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_artist.png'),
-('martingarrix@artist.com', 'Martin Garrix', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_artist.png'),
-('calvinharris@artist.com', 'Calvin Harris', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_artist.png'),
-('davidguetta@artist.com', 'David Guetta', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_artist.png'),
-('kygo@artist.com', 'Kygo', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_artist.png');
+('avicii@artist.com', 'Avicii', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_user.png'),
+('martingarrix@artist.com', 'Martin Garrix', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_user.png'),
+('calvinharris@artist.com', 'Calvin Harris', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_user.png'),
+('davidguetta@artist.com', 'David Guetta', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_user.png'),
+('kygo@artist.com', 'Kygo', '$2y$10$ZrzU4mTG7GtqsY8LKKg0.uZfpCgo1X2.SromWlOK8iEvp..2v/OES', 'images/default_user.png');
 
 -- Déclaration des artistes dans la table artist
 INSERT INTO artist (mail) VALUES
