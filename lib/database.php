@@ -332,7 +332,7 @@
             $stmt = $db->prepare("DELETE FROM playlist WHERE id_playlist = ?");
             $stmt->bind_param('i', $id_playlist);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbDeletePlaylist: " . $e->getMessage());
             return false;
         }
@@ -345,7 +345,7 @@
             $stmt->bind_param("ii", $id_playlist, $id_song);
             $stmt->execute();
             return $stmt->affected_rows > 0;
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbRemoveSongFromPlaylist: " . $e->getMessage());
             return false;
         }

@@ -1,9 +1,9 @@
 <?php
     include 'database.php';
 
-
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
+
 
     $db = database::connexionBD();
 
@@ -12,7 +12,7 @@
     }
 
 
-    // function to insert a new user
+    // Function to insert a new user
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
         if ($_POST["action"] === "register" && isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["username"])) {
             $email = $_POST["email"];
@@ -32,20 +32,16 @@
         }
     }
     
-    // function to login
+    // Function to login
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
         if ($_POST["action"] === "login" && isset($_POST["email"]) && isset($_POST["password"])) {
             $email = $_POST["email"];
             $password = $_POST["password"];
             $result = dbGetUser($db, $email, $password);
             if ($result !== "error") {
-                /*
                 setcookie("username", $result['username'], time() + 86400, "/");
                 setcookie("mail", $result['mail'], time() + 86400, "/");
-                setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");*/
-                setcookie("mail", $email, time() + 3600, "/");
-                setcookie("username", $result['username'], time() + 3600, "/");
-                setcookie("profile_picture", $result['profile_picture'], time() + 3600, "/");
+                setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");
             
                 echo json_encode(["success" => true, "user" => $result]);
             } else {
@@ -54,7 +50,7 @@
         }
     }
 
-    // function for print all songs
+    // Function for print all songs
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getSongs") {
             $result = dbGetSongs($db);
@@ -66,7 +62,7 @@
         }
     }
 
-    // function for print all playlists of the user
+    // Function for print all playlists of the user
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getPlaylists") {
             if (isset($_COOKIE['mail'])) {
@@ -82,7 +78,7 @@
         }
     }
 
-    // Action pour récupérer les chansons d'une playlist
+    // Function for print all songs of the playlist
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getPlaylistSongs") {
             if (isset($_GET["id_playlist"])) {
@@ -101,13 +97,11 @@
 
 
 
-    // function for print all liked songs of the user
+    // Function for print all liked songs of the user
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getLikedSongs") {
-            // On ne se base plus sur la session, mais sur le cookie (ici, user_id)
             if (isset($_COOKIE['mail'])) {
                 $result = dbGetLikedSongs($db, $_COOKIE['mail']);
-                // Si $result est false ou vide, on renvoie quand même un tableau vide
                 if ($result !== false && !empty($result)) {
                     echo json_encode(["success" => true, "likedSongs" => $result]);
                 } else {
@@ -120,7 +114,7 @@
         }
     }
 
-    // function to get the album's name of the song
+    // Function to get the album's name of the song
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getAlbumName") {
             if (isset($_GET["id_song"])) {
@@ -142,7 +136,7 @@
         }
     }
 
-    // function to print the artiste's name of the song
+    // Function to print the artiste's name of the song
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getArtistName") {
             if (isset($_GET["id_artist"])) {
@@ -164,7 +158,7 @@
         }
     }
 
-    // function to get user's liked song
+    // Function to get user's liked song
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])) {
         if ($_GET["action"] === "getLikedSong") {
             if (isset($_GET["mail"])) {
@@ -199,7 +193,7 @@
         }
     }
 
-    // function to delete a liked song
+    // Function to delete a liked song
     if (isset($_GET["action"]) && $_GET["action"] === "removeLikedSong") {
         if (isset($_GET["mail"]) && isset($_GET["id_song"])) {
             $result = dbDeleteLikedSong($db, $_GET["mail"], $_GET["id_song"]);
@@ -213,7 +207,7 @@
         }
     }
     
-    // function to add a song to a liked song
+    // Function to add a song to a liked song
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
         if ($_POST["action"] === "addLike") {
             if (isset($_POST["mail"]) && isset($_POST["id_song"]) && isset($_POST["like_date"])) {
@@ -228,22 +222,19 @@
             }
         }
     }
-    /*
-    // funnction to remove a song from a playlist
-    if ($_POST['action'] == 'deleteSongFromPlaylist') {
-        if (isset($_POST['id_song']) && isset($_POST['id_playlist'])) {
-            $result = dbDeleteSongFromPlaylist($db, $_POST['id_song'], $_POST['id_playlist']);
-            if ($result === true) {
-                echo json_encode(["success" => true]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Erreur lors de la suppression de la chanson de la playlist."]);
-            }
+    
+    // Function to remove a song from a playlist
+    if (isset($_POST['action']) && $_POST['action'] == 'deleteSongFromPlaylist'){
+        if (isset($_POST['id_song']) && isset($_POST['id_playlist'])){
+            $result = dbDeleteSongFromPlaylist($db, $_POST['id_playlist'], $_POST['id_song']);
+            echo json_encode(["success" => $result]);
         } else {
-            echo json_encode(["success" => false, "message" => "Identifiant de la chanson ou de la playlist non fourni."]);
+            echo json_encode(["success" => false, "message" => "ID chanson ou playlist manquant."]);
         }
-    }
-    */
-    // Update user's profile
+        exit();
+    }    
+    
+    // Function to update a profile
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "updateProfile") {
         $mail = $_POST["mail"] ?? null;
         $username = $_POST["username"] ?? null;
@@ -266,7 +257,6 @@
         }
     
         if ($profilePicture) {
-            // Gestion de l'upload
             $targetDir = "../uploads/";
             $fileName = basename($profilePicture["name"]);
             $targetFilePath = $targetDir . $fileName;
@@ -286,7 +276,7 @@
         }
     }
 
-    // function to delete a user
+    // Function to delete a user
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $data = json_decode(file_get_contents("php://input"), true);
     
@@ -304,7 +294,7 @@
         }
     }
 
-    // function to create a new playlist
+    // Function to create a new playlist
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET["action"]) && $_GET["action"] === "createPlaylist") {
         if (isset($_POST["mail"]) && isset($_POST["playlist_name"])) {  
             if (isset($_POST["playlist_name"]) && !empty(trim($_POST["playlist_name"]))) {  
@@ -325,7 +315,7 @@
         }
     } 
 
-    // function to delete a playlist
+    // Function to delete a playlist
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "deletePlaylist") {
         if (isset($_GET["id_playlist"])) {
             $id_playlist = $_GET["id_playlist"];
@@ -340,7 +330,7 @@
         }
     }
     
-    // function to get comments of a song
+    // Function to get comments of a song
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "getComments") {
         if (isset($_GET["id_song"])) {
             $result = dbGetComments($db, $_GET["id_song"]);
@@ -354,7 +344,7 @@
         }
     }
 
-    // function to add a comment
+    // Function to add a comment
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "addComment") {
         if (isset($_POST["mail"]) && isset($_POST["id_song"]) && isset($_POST["comment"]) && isset($_POST["comment_date"])) {
             $result = dbAddComment($db, $_POST["mail"], $_POST["id_song"], $_POST["comment"], $_POST["comment_date"]);
@@ -368,7 +358,7 @@
         }
     }
 
-    // function to check user's role
+    // Function to check user's role
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "checkUserType") {
         if (isset($_COOKIE['mail'])) {
             $role = dbCheckRole($db, $_COOKIE['mail']);

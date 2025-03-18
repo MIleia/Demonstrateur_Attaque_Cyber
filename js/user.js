@@ -370,7 +370,8 @@ $(document).ready(function (){
 
         // Play the next song when the current song ends
         audio.onended = function(){
-            nextSong();
+            currentSongIndex = (currentSongIndex + 1) % songsList.length;
+            playSong(currentSongIndex);
         };
     }
 
@@ -419,15 +420,32 @@ $(document).ready(function (){
         }
     });
 
-    
+
     // ------ -----   ----- -----     Other Functions     ----- -----   ----- ----- //
 
     // Function to delete a song from the playlist
     function deleteSongFromPlaylist(songId, playlistId, songElement){
-        $.get(`lib/request.php?action=deleteSongFromPlaylist&id_song=${songId}&id_playlist=${playlistId}`, function(){
-            songElement.remove();
+        $.ajax({
+            url: "lib/request.php",
+            type: "POST",
+            data: {
+                action: "deleteSongFromPlaylist",
+                id_song: songId,
+                id_playlist: playlistId
+            },
+            dataType: "json",
+            success: function (response){
+                if (response.success){
+                    songElement.remove();
+                } else {
+                    alert("Erreur : " + response.message);
+                }
+            },
+            error: function (xhr, status, error){
+                console.error("Erreur AJAX :", error);
+            }
         });
-    }
+    }    
 });
 
 // function to show the artist button or admin button
