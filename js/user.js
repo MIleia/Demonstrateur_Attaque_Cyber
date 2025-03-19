@@ -99,7 +99,7 @@ $(document).ready(function (){
                     if (playlistName) {
                         let postData = {
                             action: "createPlaylist",
-                            mail: usermail,
+                            //mail: usermail,
                             playlist_name: playlistName
                         };
                 
@@ -108,8 +108,8 @@ $(document).ready(function (){
                             type: "POST",
                             data: postData,
                             dataType: "json",
-                            success: function (response) {
-                                if (response.success) {
+                            success: function (response){
+                                if (response.success){
                                     let newPlaylistElement = $(`
                                         <div class="card-playlist">
                                             <div class="card-content">
@@ -304,7 +304,7 @@ $(document).ready(function (){
             modal.remove();
         });
     
-        // Récupérer les commentaires du son
+        // Get the comments
         $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, function(data){
             // Clear the comments list
             commentsList.empty();
@@ -312,19 +312,23 @@ $(document).ready(function (){
             if (data.success && data.comments.length > 0) {
                 data.comments.forEach(comment => {
                     // Get username of the comment
-                    $.getJSON(`lib/request.php?action=dbGetUserInfos&mail=${comment.mail}`, function(data){
-                        let username = userData.success ? userData.username : "Utilisateur inconnu";
+                    if (comment.mail){
+                        $.getJSON(`lib/request.php?action=getUsername&mail=${comment.mail}`, function(data){
+                            if (data.success){
+                                comment.username = data.username;
+                            }
+                        });
+                    }
 
-                        let commentElement = $(`
-                            <div class="comment">
-                                <strong>${username} :</strong> ${commentText}
-                                <br><span style="font-size: 12px; color: gray;">Posté le ${date}</span>
-                            </div>
-                            <hr>
-                        `);
-                        commentsList.append(commentElement);
-                        modal.find('#commentText').val('');
-                    });
+                    // Display the comment
+                    let commentElement = $(`
+                        <div class="comment">
+                            <strong>${comment.mail} :</strong> ${comment.comment}
+                            <br><span style="font-size: 12px; color: gray;">Posté le ${comment.comment_date}</span>
+                        </div>
+                        <hr>
+                    `);
+                    commentsList.append(commentElement);
                 });
             } else {
                 commentsList.append("<p>Aucun commentaire pour ce son.</p>");
@@ -438,14 +442,40 @@ $(document).ready(function (){
     // Add a like to the song
     likeButton.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
-        if (usermail && songId) {
-            let like_date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            $.post('lib/request.php?action=addLike', { mail: usermail, id_song: songId, like_date: like_date }, function(data){
-                if (data.success) {
-                    alert('Ajouté aux favoris');
-                } else {
-                    alert('Erreur, essai plus tard');
-                }
+        if (songId){
+            $.post('lib/request.php', {
+                action: 'addLike',
+                id_song: songId
+            }, function(){
+                likeButton.css('color', 'red');
+                alert('Chanson ajoutée aux favoris');
+                
+                // Update the favorite songs
+                $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
+                    if (data.success){
+                        let favoriteSongsContainer = $('#favorite-songs-container').empty();
+                        $.each(data.songs, function(index, song){
+                            let songElement = $(`
+                                <div class="card-favorite-song" data-song-id="${song.id_song}">
+                                    <img src="${song.picture}" alt="${song.name}" class="card-img">
+                                    <p>${song.name}</p>
+                                    <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
+                                </div>
+                            `);
+                            favoriteSongsContainer.append(songElement);
+                            songElement.click(function(){
+                                playSongById(song.id_song);
+                            });
+                            songElement.find('.remove-favorite').click(function(event){
+                                event.stopPropagation();
+                                let songId = $(this).data('song-id');
+                                $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function (){
+                                    $(`.card-favorite-song[data-song-id="${songId}"]`).remove();
+                                });
+                            });
+                        });
+                    }
+                });
             });
         }
     });

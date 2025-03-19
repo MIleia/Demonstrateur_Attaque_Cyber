@@ -25,58 +25,35 @@
             
             // Check if the email is already taken
             if ($result === "Already"){
-                echo json_encode(["success" => false, "message" => "L'email est déjà pris."]);
-            } elseif ($result === true){
-                echo json_encode(["success" => true]);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(["success" => false, "message" => "E-mail déjà utilisé."]);
+                exit();
+            } else if ($result === true){    
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(["success" => true, "message" => "Utilisateur créé avec succès."]);
+                exit();
             } else {
-                echo json_encode(["success" => false, "message" => "Erreur lors de l'inscription."]);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(["success" => false, "message" => "Erreur lors de la création de l'utilisateur."]);
+                exit();
             }
         }
     }
     
     // Function to login
-    /*
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
         if ($_POST["action"] === "login" && isset($_POST["email"]) && isset($_POST["password"])) {
             $email = $_POST["email"];
             $password = $_POST["password"];
             $result = dbGetUser($db, $email, $password);
     
+            // Check if the email and password are correct
             if ($result !== "error") {
-                // Vérifie si les en-têtes sont déjà envoyés avant de définir les cookies
+                // Check if headers have already been sent
                 if (!headers_sent()) {
                     setcookie("username", $result['username'], time() + 86400, "/");
                     setcookie("mail", $result['mail'], time() + 86400, "/");
                     setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");
-                } else {
-                    error_log("Erreur : Impossible de définir les cookies, les en-têtes ont déjà été envoyés.");
-                }
-    
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(["success" => true, "user" => $result], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                exit();
-            } else {
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(["success" => false, "message" => "E-mail ou mot de passe incorrect."]);
-                exit();
-            }
-        }
-    }*/
-    
-    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])) {
-        if ($_POST["action"] === "login" && isset($_POST["email"]) && isset($_POST["password"])) {
-            $email = $_POST["email"];
-            $password = $_POST["password"];
-            $result = dbGetUser($db, $email, $password);
-    
-            if ($result !== "error") {
-                // Vérifie si les en-têtes sont déjà envoyés avant de définir les cookies
-                if (!headers_sent()) {
-                    setcookie("username", $result['username'], time() + 86400, "/");
-                    setcookie("mail", $result['mail'], time() + 86400, "/");
-                    setcookie("profile_picture", $result['profile_picture'], time() + 86400, "/");
-                } else {
-                    error_log("Erreur : Impossible de définir les cookies, les en-têtes ont déjà été envoyés.");
                 }
     
                 header('Content-Type: application/json; charset=utf-8');
@@ -134,8 +111,6 @@
             exit;
         }
     }
-
-
 
     // Function for print all liked songs of the user
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"])){
@@ -248,18 +223,16 @@
     }
     
     // Function to add a song to a liked song
-    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])){
-        if ($_POST["action"] === "addLike") {
-            if (isset($_POST["mail"]) && isset($_POST["id_song"]) && isset($_POST["like_date"])) {
-                $result = dbAddLikedSong($db, $_POST["mail"], $_POST["id_song"], $_POST["like_date"]);
-                if ($result === true){
-                    echo json_encode(["success" => true]);
-                } else {
-                    echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout de la chanson likée."]);
-                }
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "addLike"){
+        if (isset($_POST["id_song"])){
+            $result = dbAddLikedSong($db, $_COOKIE['mail'], $_POST["id_song"]);
+            if ($result === true){
+                echo json_encode(["success" => true]);
             } else {
-                echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
+                echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout de la chanson likée."]);
             }
+        } else {
+            echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
         }
     }
     
@@ -280,8 +253,6 @@
         $username = $_POST["username"] ?? null;
         $password = $_POST["password"] ?? null;
         $profilePicture = $_FILES["profile_picture"] ?? null;
-
-        error_log("mail: $mail, username: $username, password: $password");
         $success = false;
         if ($username){
             $success = dbUpdateUsername($db, $mail, $username);
@@ -331,10 +302,10 @@
 
     // Function to create a new playlist
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "createPlaylist") {
-        if (!empty($_POST["mail"]) && !empty(trim($_POST["playlist_name"]))) {  
+        if (!empty(trim($_POST["playlist_name"]))) {  
             $playlistName = trim($_POST["playlist_name"]);
-            $result = dbCreatePlaylist($db, $_POST["mail"], $playlistName);
-            
+            $result = dbCreatePlaylist($db, $_COOKIE['mail'], $playlistName);
+
             if ($result === true) {
                 echo json_encode(["success" => true]);
             } else {
@@ -408,11 +379,14 @@
         if (isset($_POST["mail"])){
             $result = dbGetUserInfos($db, $mail);
             if ($result !== false){
+                error_log("result: " . json_encode($result));
                 echo json_encode(["success" => true, "username" => $result['username']]);
             } else {
+                error_log("Erreur lors de la récupération du nom d'utilisateur.");
                 echo json_encode(["success" => false, "message" => "Erreur lors de la récupération du nom d'utilisateur."]);
             }
         } else {
+            error_log("Mail non fourni.");
             echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
         }
     }

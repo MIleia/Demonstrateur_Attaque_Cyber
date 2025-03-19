@@ -236,10 +236,10 @@
     }
 
     // Function to add a song to the liked songs
-    function dbAddLikedSong($db, $mail, $id_song, $like_date){
+    function dbAddLikedSong($db, $mail, $id_song){
         try {
-            $stmt = $db->prepare("INSERT INTO likes (mail, id_song, like_date) VALUES (?, ?, ?)");
-            $stmt->bind_param('sis', $mail, $id_song, $like_date);
+            $stmt = $db->prepare("INSERT INTO likes (mail, id_song, like_date) VALUES (?, ?, NOW())");
+            $stmt->bind_param('si', $mail, $id_song);
             return $stmt->execute();
         } catch (mysqli_sql_exception $e){
             error_log("Erreur dbAddLikedSong: " . $e->getMessage());
