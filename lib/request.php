@@ -254,6 +254,7 @@
         $password = $_POST["password"] ?? null;
         $profilePicture = $_FILES["profile_picture"] ?? null;
         $success = false;
+
         if ($username){
             $success = dbUpdateUsername($db, $mail, $username);
             setcookie("username", $username, time() + 86400, "/");
@@ -274,7 +275,7 @@
                 exit;
             }
         }
-    
+        error_log($success);
         if ($success){
             echo json_encode(["success" => true, "message" => "Profil mis à jour avec succès."]);
         } else {
@@ -379,14 +380,11 @@
         if (isset($_POST["mail"])){
             $result = dbGetUserInfos($db, $mail);
             if ($result !== false){
-                error_log("result: " . json_encode($result));
                 echo json_encode(["success" => true, "username" => $result['username']]);
             } else {
-                error_log("Erreur lors de la récupération du nom d'utilisateur.");
                 echo json_encode(["success" => false, "message" => "Erreur lors de la récupération du nom d'utilisateur."]);
             }
         } else {
-            error_log("Mail non fourni.");
             echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
         }
     }
