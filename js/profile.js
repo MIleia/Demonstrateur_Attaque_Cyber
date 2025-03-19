@@ -18,7 +18,7 @@ $(document).ready(function (){
     $("#updateProfileForm").on("submit", function (event){
         event.preventDefault();
     
-        let username = $("#usernameInput").val();
+        let username = $("#username").val();
         let password = $("#password").val();
         let confirmPassword = $("#confirmPassword").val();
         let profilePicture = $("#profile_picture")[0].files[0];
@@ -101,9 +101,16 @@ $(document).ready(function (){
     let username = getCookie("username");
     let profilePicture = getCookie("profile_picture");
 
+    // Sans problème de sécurité
+    /*
     $("#usernameInput").val(username);
     $("#username").text(username);
+    */
     
+    // ⚠️ Injection directe de username dans le DOM sans échappement !
+    $("#usernameInput").val(username);
+    $("#username").html(username);
+
     if (profilePicture) {
         $("#profilePicture").attr("src", profilePicture);
     }
