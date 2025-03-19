@@ -9,17 +9,17 @@
         static $db = null;
 
         static function connexionBD(){
-            if (self::$db != null) {
+            if (self::$db != null){
                 return self::$db;
             }
             require_once("config.php");
 
             try {
                 self::$db = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-                if (self::$db->connect_error) {
+                if (self::$db->connect_error){
                     throw new Exception("Erreur de connexion à la base de données : " . self::$db->connect_error);
                 }
-            } catch (Exception $exception) {
+            } catch (Exception $exception){
                 die("Erreur de connexion à la base de données : " . $exception->getMessage());
             }
 
@@ -40,7 +40,7 @@
             } else {
                 return "error";
             }
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return false;
         }
@@ -54,7 +54,7 @@
             $stmt->execute();
             $user = $stmt->get_result()->fetch_assoc();
             return !empty($user);
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return false;
         }
@@ -72,7 +72,7 @@
             $stmt->bind_param('ssss', $mail, $username, $hash, $profile_picture);
             $stmt->execute();
             return true;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return "Error: " . $exception->getMessage();
         }
@@ -86,7 +86,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return false;
         }
@@ -99,7 +99,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return "Error: " . $exception->getMessage();
         }
@@ -113,7 +113,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return "Error: " . $exception->getMessage();
         }
@@ -135,7 +135,7 @@
             }
 
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return "Error: " . $exception->getMessage();
         }
@@ -149,7 +149,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error (dbGetAlbum): ' . $exception->getMessage());
             return false;
         }
@@ -162,7 +162,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error (dbGetAlbumName): ' . $exception->getMessage());
             return false;
         }
@@ -176,7 +176,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
             return $result;
-        } catch (mysqli_sql_exception $exception) {
+        } catch (mysqli_sql_exception $exception){
             error_log('Request error: ' . $exception->getMessage());
             return false;
         }
@@ -189,7 +189,7 @@
             $stmt->bind_param('ii', $id_song, $id_playlist);
             $stmt->execute();
             return $stmt->affected_rows > 0;
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur removeSongFromPlaylist: " . $e->getMessage());
             return false;
         }
@@ -203,7 +203,7 @@
             $stmt->execute();
             $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             return $result;
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbGetIdSong: " . $e->getMessage());
             return false;
         }
@@ -259,7 +259,7 @@
             $stmt->bind_param('i', $id_playlist);
             $stmt->execute();
             return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbGetPlaylistSongs: " . $e->getMessage());
             return false;
         }
@@ -271,7 +271,7 @@
             $stmt = $db->prepare("UPDATE users SET profile_picture = ? WHERE mail = ?");
             $stmt->bind_param('ss', $profile_picture, $mail);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbUpdateProfilePicture: " . $e->getMessage());
             return false;
         }
@@ -283,7 +283,7 @@
             $stmt = $db->prepare("UPDATE users SET username = ? WHERE mail = ?");
             $stmt->bind_param('ss', $username, $mail);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbUpdateUsername: " . $e->getMessage());
             return false;
         }
@@ -296,7 +296,7 @@
             $stmt = $db->prepare("UPDATE users SET password = ? WHERE mail = ?");
             $stmt->bind_param('ss', $hash, $mail);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbUpdatePassword: " . $e->getMessage());
             return false;
         }
@@ -308,7 +308,7 @@
             $stmt = $db->prepare("DELETE FROM users WHERE mail = ?");
             $stmt->bind_param('s', $mail);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbDeleteUser: " . $e->getMessage());
             return false;
         }
@@ -320,7 +320,7 @@
             $stmt = $db->prepare("INSERT INTO playlist (mail, playlist_name) VALUES (?, ?)");
             $stmt->bind_param('ss', $mail, $name);
             return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbCreatePlaylist: " . $e->getMessage());
             return false;
         }
@@ -357,27 +357,25 @@
             $stmt = $db->prepare("SELECT * FROM comment WHERE id_song = ?");
             $stmt->bind_param("i", $id_song);
             $stmt->execute();
-            $result = $stmt->get_result();
-            return $result->fetch_all(MYSQLI_ASSOC);
-        } catch (mysqli_sql_exception $e) {
+            return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbGetComments: " . $e->getMessage());
             return false;
         }
-    }
+    }    
 
     // Add a comment
-    function dbAddComment($db, $mail, $id_song, $comment, $comment_date){
+    function dbAddComment($db, $mail, $id_song, $comment){
         try {
-            $stmt = $db->prepare("INSERT INTO comment (mail, id_song, comment, comment_date) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("siss", $mail, $id_song, $comment, $comment_date);
-            $stmt->execute();
-            return $stmt->affected_rows > 0;
-        } catch (mysqli_sql_exception $e) {
+            $stmt = $db->prepare("INSERT INTO comment (mail, id_song, comment, comment_date) VALUES (?, ?, ?, NOW())");
+            $stmt->bind_param("sis", $mail, $id_song, $comment);
+            return $stmt->execute();
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbAddComment: " . $e->getMessage());
             return false;
         }
     }
-
+    
     // Get the user's role
     function dbCheckRole($db, $mail){
         try {
@@ -386,7 +384,7 @@
             $stmt->bind_param("s", $mail);
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
-            if (!empty($result)) {
+            if (!empty($result)){
                 return "artist";
             }
 
@@ -395,12 +393,12 @@
             $stmt->bind_param("s", $mail);
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
-            if (!empty($result)) {
+            if (!empty($result)){
                 return "admin";
             }
 
             return false;
-        } catch (mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e){
             error_log("Erreur dbCheckRole: " . $e->getMessage());
             return false;
         }

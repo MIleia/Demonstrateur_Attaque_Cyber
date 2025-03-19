@@ -183,7 +183,7 @@ INSERT INTO likes (id_song, mail, notice) VALUES
 
 -- Ajout de commentaires
 INSERT INTO comment (mail, id_song, comment) VALUES
-('user1@user.com', 1, 'Toujours aussi bon, même après des années !'),
+('user1@user.com', 1, 'Toujours aussi bon !'),
 ('user2@user.com', 5, 'Calvin Harris sait comment faire vibrer !');
 
 

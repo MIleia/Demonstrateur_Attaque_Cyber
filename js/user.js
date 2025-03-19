@@ -95,12 +95,21 @@ $(document).ready(function (){
 
                 // Creation of a new playlist
                 createPlaylistElement.click(() => {
-                    let playlistName = prompt('Nom de la playlist :');
-                    if (playlistName){
-                        $.post('lib/request.php?action=createPlaylist', { mail: usermail, playlist_name: playlistName }, function (response) {
-                            try {
-                                let data = JSON.parse(response);
-                                if (data.success){
+                    let playlistName = prompt("Nom de la playlist :");
+                    if (playlistName) {
+                        let postData = {
+                            action: "createPlaylist",
+                            mail: usermail,
+                            playlist_name: playlistName
+                        };
+                
+                        $.ajax({
+                            url: "lib/request.php",
+                            type: "POST",
+                            data: postData,
+                            dataType: "json",
+                            success: function (response) {
+                                if (response.success) {
                                     let newPlaylistElement = $(`
                                         <div class="card-playlist">
                                             <div class="card-content">
@@ -111,19 +120,17 @@ $(document).ready(function (){
                                             </div>
                                         </div>
                                     `);
-                                    playlistsElement.append(newPlaylistElement);
+                                    $(".playlists").append(newPlaylistElement);
                                 } else {
-                                    alert('Erreur lors de la création de la playlist: ' + data.message);
+                                    alert("Erreur lors de la création de la playlist: " + response.message);
                                 }
-                            } catch (e) {
-                                console.error("Erreur JSON :", e, response);
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Erreur AJAX :", xhr.responseText);
                             }
-                        }).fail((xhr, status, error) => {
-                            console.error("Erreur AJAX :", status, error);
                         });
                     }
                 });
-
                 playlistsElement.append(createPlaylistElement);
             } else {
                 console.error('Erreur lors de la récupération des playlists');
@@ -256,86 +263,106 @@ $(document).ready(function (){
                     playSong(songIndex);
                 });
 
-                // Show the song details when clicked
+                // Show the song comments when clicked
                 songElement.click(function (e){
                     if (!$(e.target).hasClass('play-button')){
-                        showSongDetails(song.id_song);
+                        showSongComments(song.id_song);
                     }
                 });
             });
         }
     });
 
-    // Function to show the song details
-    function showSongDetails(songId){
-        $.getJSON(`lib/request.php?action=getComments&id_song=${songId}`, function(data){
-            if (data.success){
-                let song = songsList.find(s => s.id_song === songId);
-                let comments = data.comments;
-
-                let modal = $(`
-                    <div class="modal">
-                        <div class="modal-content">
-                            <span class="close-button">&times;</span>
-                            <h2>${song.name}</h2>
-                            <p><strong>Artiste:</strong> ${song.artist}</p>
-                            <p><strong>Album:</strong> ${song.album}</p>
-                            <p><strong>Durée:</strong> ${song.time}</p>
-                            <h3>Commentaires :</h3>
-                            <div class="comments-container"></div>
-                            <textarea class="comment-input" placeholder="Ajouter un commentaire"></textarea>
-                            <button class="comment-button">Ajouter</button>
-                        </div>
-                    </div>
-                `);
-                $('body').append(modal);
-
-                let commentsContainer = modal.find('.comments');
-                comments.forEach(comment => {
-                    let commentElement = $(`
-                        <div class="comment">
-                            <h4>${comment.username}</h4>
-                            <p>${comment.comment}</p>
-                        </div>
-                    `);
-                    commentsContainer.append(commentElement);
-                });
-
-                modal.find('.close-button').on('click', function(){
-                    modal.remove();
-                });
-
-                modal.find('.comment-button').on('click', function(){
-                    let commentInput = modal.find('.comment-input');
-                    let commentText = commentInput.val();
-                    if (commentText) {
-                        $comment_date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                        $.post('lib/request.php?action=addComment', { mail: usermail, id_song: songId, comment: commentText, comment_date: $comment_date }, function (data) {
-                            if (data.success) {
-                                /*
-                                commentInput.val('');
-                                let commentElement = $(`
-                                    <div class="comment">
-                                        <h4>${username}</h4>
-                                        <p>${commentText}</p>
-                                    </div>
-                                `);
-                                commentsContainer.append(commentElement);
-                                */
-                            } else {
-                                alert('Erreur lors de l\'ajout du commentaire');
-                            }
-                        });
-                    }
-                });
+    function showSongComments(id_song) {
+        // Créer dynamiquement le modal
+        const modal = $('<div id="commentModal" class="modal"></div>');
+        const modalContent = $('<div class="modal-content"></div>');
+        const closeBtn = $('<span class="close-button">&times;</span>');
+        const title = $('<h2>Commentaires</h2>');
+        const commentsList = $('<div id="commentsList"></div>');
+        const commentForm = $('<div id="commentForm">\
+                                <textarea id="commentText" placeholder="Ajouter un commentaire" rows="4" cols="50"></textarea>\
+                                <button id="submitComment">Ajouter</button>\
+                              </div>');
+    
+        // Ajouter les éléments dans le modal
+        modalContent.append(closeBtn);
+        modalContent.append(title);
+        modalContent.append(commentsList);
+        modalContent.append(commentForm);
+        modal.append(modalContent);
+        $('body').append(modal);
+    
+        // Fermer le modal lorsque la croix est cliquée
+        modal.find('.close-button').on('click', function() {
+            modal.remove();
+        });
+    
+        // Récupérer les commentaires du son
+        $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, function(data) {
+            if (data.success) {
+                commentsList.empty();  // Nettoyer les anciens commentaires
+    
+                if (data.comments.length > 0) {
+                    data.comments.forEach(comment => {
+                        let commentElement = $(`
+                            <div class="comment">
+                                <strong>${comment.mail} :</strong> ${comment.comment}
+                                <br><span style="font-size: 12px; color: gray;">Posté le ${comment.comment_date}</span>
+                            </div>
+                            <hr>
+                        `);
+                        commentsList.append(commentElement);
+                    });
+                } else {
+                    commentsList.append("<p>Aucun commentaire pour ce son.</p>");
+                }
+    
+                // Afficher le modal
+                modal.show();
             } else {
-                console.error("Erreur : Impossible de récupérer les détails du son.");
+                alert("Erreur lors de la récupération des commentaires.");
             }
         }).fail(error => {
-            console.error("Erreur AJAX lors de la récupération des détails du son :", error);
+            console.error("Erreur AJAX :", error);
+        });
+    
+        // Ajouter un commentaire au clic sur le bouton "Ajouter"
+        modal.find('#submitComment').on('click', function() {
+            const commentText = modal.find('#commentText').val();
+    
+            if (commentText.trim() !== "") {
+                // Envoi du commentaire via AJAX
+                $.post('lib/request.php',{
+                    action: 'addComment',
+                    id_song: id_song,
+                    comment: commentText
+                }, function(response){
+                    // Ajouter le commentaire à la liste
+                    let commentElement = $(`
+                        <div class="comment">
+                            <strong>${response.mail} :</strong> ${commentText}
+                            <br><span style="font-size: 12px; color: gray;">Posté le ${response.comment_date}</span>
+                        </div>
+                        <hr>
+                    `);
+                    commentsList.append(commentElement);
+                    modal.find('#commentText').val('');
+                }).fail(function() {
+                    alert("Erreur lors de l'envoi du commentaire.");
+                });
+            } else {
+                alert("Le commentaire ne peut pas être vide.");
+            }
         });
     }
-
+    
+    // Exemple d'utilisation avec un clic sur un son
+    $('#songs').on('click', '.card-musique', function (e) {
+        let songId = $(this).data('song-id');
+        showSongComments(songId);
+    });    
+    
 
     // ------ -----   ----- -----     Music player     ----- -----   ----- ----- //
 
@@ -352,7 +379,8 @@ $(document).ready(function (){
         let musicImage = musicFooter.find('img');
         let musicTitle = musicFooter.find('span');
         let playButton = musicFooter.find('button:nth-child(2)');
-
+        let AddPlaylist = musicFooter.find('add-to-playlist-button');
+        
         // Check if the song is already playing or not
         if (audio.src === `songs/${song.song}` && !audio.paused){
             audio.pause();
