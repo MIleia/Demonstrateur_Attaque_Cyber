@@ -374,7 +374,7 @@
             echo json_encode(["success" => false, "message" => "Identifiant de la chanson non fourni."]);
         }
     }
-/*
+
     // Function to add a comment
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])){
         if (isset($_POST["id_song"]) && isset($_POST["comment"])){
@@ -388,7 +388,7 @@
             echo json_encode(["success" => false, "message" => "Mail, id de la chanson ou commentaire non fourni."]);
         }
     }
-*/
+
     // Function to check user's role
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "checkUserType"){
         if (isset($_COOKIE['mail'])){
