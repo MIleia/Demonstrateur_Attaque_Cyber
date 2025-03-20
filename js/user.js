@@ -19,6 +19,13 @@ $(document).ready(function (){
         $('#user-name').text(username);
     }
 
+    // Search Bar
+    $('#search-form').submit(function(event){
+        event.preventDefault();
+        let searchInput = $('#search').val().trim();
+        
+    });
+
     // Display the user's linked songs
     if (usermail){
         $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
@@ -364,7 +371,7 @@ $(document).ready(function (){
     }    
     
     // Show the song comments when clicked
-    $('#songs').on('click', '.card-musique', function (e) {
+    $('#songs').on('click', '.card-musique', function(){
         let songId = $(this).data('song-id');
         showSongComments(songId);
     });    
@@ -380,7 +387,7 @@ $(document).ready(function (){
     let songsList = [];
 
    // Function to play a song by index
-    function playSong(index) {
+    function playSong(index){
         let song = songsList[index];
         let musicFooter = $('.music-footer');
         let musicImage = musicFooter.find('img');
@@ -388,7 +395,7 @@ $(document).ready(function (){
         let playButton = musicFooter.find('.play-button');
 
         // If the song is already playing, pause it
-        if (audio.src.includes(song.song) && !audio.paused) {
+        if (audio.src.includes(song.song) && !audio.paused){
             audio.pause();
             playButton.text('▶️'); // Icône Play
             return;
@@ -404,7 +411,7 @@ $(document).ready(function (){
         currentSongIndex = index;
 
         // Play the next song when the current song ends
-        audio.onended = function () {
+        audio.onended = function (){
             currentSongIndex = (currentSongIndex + 1) % songsList.length;
             playSong(currentSongIndex);
         };
@@ -455,7 +462,7 @@ $(document).ready(function (){
                 $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
                     if (data.success){
                         let favoriteSongsContainer = $('#favorite-songs-container').empty();
-                        $.each(data.songs, function(index, song){
+                        $.each(data.songs, function(song){
                             let songElement = $(`
                                 <div class="card-favorite-song" data-song-id="${song.id_song}">
                                     <img src="${song.picture}" alt="${song.name}" class="card-img">

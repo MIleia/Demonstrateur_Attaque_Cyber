@@ -45,6 +45,65 @@ body {
     margin: 20px 0;
 }
 
+/* Bouton de déconnexion */
+.logout-button {
+    background: none;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-button:hover {
+    background: white;
+    color: black;
+}
+
+/* Style général des boutons */
+#artiste-button,
+#admin-button {
+    display: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    text-decoration: none;
+    width: 200px;
+    margin: 10px auto;
+    display: block;
+}
+
+/* Boutton Artiste */
+#artiste-button {
+    background-color: #007bff;
+    color: white;
+}
+
+#artiste-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Bouton Admin */
+#admin-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+#admin-button:hover {
+    background-color: #a71d2a;
+    transform: scale(1.05);
+}
+
 /* Barre de recherche */
 .search-container-user {
     margin-top: 30px;
@@ -372,22 +431,6 @@ h2, h3 {
 }
 
 .modal h2 {
-    color: white;
-    font-size: 22px;
-    margin-bottom: 10px;
-}
-
-/* Modal2 */
-.modal2 {
-    position: fixed;
-    
-}
-
-.modal2-content {
-    text-align: center;
-}
-
-.modal2 h2 {
     color: white;
     font-size: 22px;
     margin-bottom: 10px;
