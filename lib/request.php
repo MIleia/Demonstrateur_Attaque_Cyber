@@ -14,6 +14,27 @@
     }
 
 
+    // Function to reset the database
+    if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "reset"){
+        $sqlFile = '../sql/final_fill.sql';
+        $sql = file_get_contents($sqlFile);
+
+        if (!$sql) {
+            die("Erreur lors du chargement du fichier SQL.");
+        }
+
+        // Exécution des requêtes SQL
+        if (mysqli_multi_query($db, $sql)) {
+            echo "Base de données réinitialisée avec succès.";
+        } else {
+            echo "Erreur lors de la réinitialisation : " . mysqli_error($db);
+        }
+
+        mysqli_close($db);
+    }
+
+    /* ----- -----   ----- -----     Requests     ----- -----   ----- ----- */
+
     // Function to insert a new user
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"])){
         if ($_POST["action"] === "register" && isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["username"])) {
