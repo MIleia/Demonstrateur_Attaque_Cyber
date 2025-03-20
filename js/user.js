@@ -19,6 +19,16 @@ $(document).ready(function (){
         $('#user-name').text(username);
     }
 
+    // Deconnection button
+    $('#logout-button').click(
+        function(){
+            document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "profile_picture=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "mail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "login.html";
+        }
+    );
+
     // Search Bar
     $('#search-form').submit(function(event){
         event.preventDefault();
@@ -462,7 +472,7 @@ $(document).ready(function (){
                 $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
                     if (data.success){
                         let favoriteSongsContainer = $('#favorite-songs-container').empty();
-                        $.each(data.songs, function(song){
+                        $.each(data.songs, function(index, song){
                             let songElement = $(`
                                 <div class="card-favorite-song" data-song-id="${song.id_song}">
                                     <img src="${song.picture}" alt="${song.name}" class="card-img">
@@ -471,9 +481,13 @@ $(document).ready(function (){
                                 </div>
                             `);
                             favoriteSongsContainer.append(songElement);
+
+                            // Check if the song is clicked
                             songElement.click(function(){
                                 playSongById(song.id_song);
                             });
+
+                            // Delete the song from the favorites
                             songElement.find('.remove-favorite').click(function(event){
                                 event.stopPropagation();
                                 let songId = $(this).data('song-id');
@@ -481,6 +495,7 @@ $(document).ready(function (){
                                     $(`.card-favorite-song[data-song-id="${songId}"]`).remove();
                                 });
                             });
+
                         });
                     }
                 });

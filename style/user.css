@@ -47,20 +47,20 @@ body {
 
 /* Bouton de déconnexion */
 .logout-button {
-    background: none;
-    border: 2px solid white;
-    padding: 10px 20px;
-    border-radius: 50px;
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    padding: 10px 16px;
     font-size: 16px;
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 .logout-button:hover {
-    background: white;
+    background: red;
     color: black;
 }
 
