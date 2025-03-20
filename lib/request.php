@@ -235,6 +235,20 @@
             echo json_encode(["success" => false, "message" => "Mail ou id de la chanson non fourni."]);
         }
     }
+
+    // Function to add a song to a playlist
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "addSongToPlaylist"){
+        if (isset($_POST["id_song"]) && isset($_POST["id_playlist"])){
+            $result = dbAddSongToPlaylist($db, $_POST["id_playlist"], $_POST["id_song"]);
+            if ($result === true){
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout de la chanson à la playlist."]);
+            }
+        } else {
+            echo json_encode(["success" => false, "message" => "ID chanson ou playlist manquant."]);
+        }
+    }
     
     // Function to remove a song from a playlist
     if (isset($_POST['action']) && $_POST['action'] == 'deleteSongFromPlaylist'){
@@ -245,7 +259,7 @@
             echo json_encode(["success" => false, "message" => "ID chanson ou playlist manquant."]);
         }
         exit();
-    }    
+    }
     
     // Function to update a profile
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "updateProfile"){
@@ -275,7 +289,7 @@
                 exit;
             }
         }
-        error_log($success);
+
         if ($success){
             echo json_encode(["success" => true, "message" => "Profil mis à jour avec succès."]);
         } else {

@@ -377,6 +377,22 @@ h2, h3 {
     margin-bottom: 10px;
 }
 
+/* Modal2 */
+.modal2 {
+    position: fixed;
+    
+}
+
+.modal2-content {
+    text-align: center;
+}
+
+.modal2 h2 {
+    color: white;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
 /* Style des chansons */
 .playlist-song {
     padding: 8px;

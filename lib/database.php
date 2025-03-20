@@ -265,6 +265,18 @@
         }
     }
 
+    // Function to add a song to a playlist
+    function dbAddSongToPlaylist($db, $id_playlist, $id_song){
+        try {
+            $stmt = $db->prepare("INSERT INTO playlist_songs (id_playlist, id_song) VALUES (?, ?)");
+            $stmt->bind_param('ii', $id_playlist, $id_song);
+            return $stmt->execute();
+        } catch (mysqli_sql_exception $e){
+            error_log("Erreur dbAddSongToPlaylist: " . $e->getMessage());
+            return false;
+        }
+    }
+
     // Update the profile picture of a user
     function dbUpdateProfilePicture($db, $mail, $profile_picture){
         try {

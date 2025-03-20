@@ -374,36 +374,37 @@ $(document).ready(function (){
 
     let musicFooter = $('.music-footer');
     let likeButton = musicFooter.find('.like-button');
+    let AddPlaylist = musicFooter.find('.add-to-playlist-button');
     let audio = new Audio();
     let currentSongIndex = 0;
     let songsList = [];
 
    // Function to play a song by index
-   function playSong(index) {
+    function playSong(index) {
         let song = songsList[index];
         let musicFooter = $('.music-footer');
         let musicImage = musicFooter.find('img');
         let musicTitle = musicFooter.find('span');
-        let playButton = musicFooter.find('button:nth-child(2)');
-        let AddPlaylist = musicFooter.find('add-to-playlist-button');
+        let playButton = musicFooter.find('.play-button');
 
-        // Check if the song is already playing or not
-        if (audio.src === `songs/${song.song}` && !audio.paused){
+        // If the song is already playing, pause it
+        if (audio.src.includes(song.song) && !audio.paused) {
             audio.pause();
-            playButton.text('▶️');
-        } else {
-            audio.src = `songs/${song.song}`;
-            audio.play();
-            playButton.text('⏸️');
-            musicTitle.text(song.name);
-            musicImage.attr('src', song.picture);
+            playButton.text('▶️'); // Icône Play
+            return;
         }
 
-        // Update the current song index
+        // Play the song
+        audio.src = `songs/${song.song}`;
+        audio.play();
+        playButton.text('⏸️'); // Icône Pause
+        musicTitle.text(song.name);
+        musicImage.attr('src', song.picture);
+
         currentSongIndex = index;
 
         // Play the next song when the current song ends
-        audio.onended = function(){
+        audio.onended = function () {
             currentSongIndex = (currentSongIndex + 1) % songsList.length;
             playSong(currentSongIndex);
         };
@@ -422,7 +423,7 @@ $(document).ready(function (){
     });
 
     // Change the play button or pause button
-    let playButton = $('.music-footer').find('button:nth-child(2)');
+    let playButton = $('.music-footer').find('.play-button');
     playButton.click(function(){
         if (audio.paused){
             audio.play();
@@ -476,6 +477,47 @@ $(document).ready(function (){
                         });
                     }
                 });
+            });
+        }
+    });
+
+    // Add a song to a playlist
+    AddPlaylist.click(() => {
+        let songId = songsList[currentSongIndex]?.id_song;
+        if (songId){
+            $.getJSON('lib/request.php?action=getPlaylists', function(data){
+                if (data.success){
+                    let playlists = data.playlists;
+                    // Create the modal
+                    let select = $('<select>');
+                    playlists.forEach(playlist => {
+                        select.append(`<option value="${playlist.id_playlist}">${playlist.playlist_name}</option>`);
+                    });
+                    select.prepend('<option value="" selected>Choisir une playlist</option>');
+                    let modal2 = $('<div class="modal"></div>');
+                    let modalContent = $('<div class="modal-content"></div>');
+                    let closeButton = $('<span class="close-button">&times;</span>');
+                    let title = $('<h2>Ajouter à une playlist</h2>');
+                    modalContent.append(closeButton, title, select);
+                    modal2.append(modalContent);
+                    $('body').append(modal2);
+                    closeButton.click(function(){
+                        modal2.remove();
+                    });
+
+                    // Add the song to the selected playlist
+                    select.change(function(){
+                        let playlistId = select.val();
+                        $.post('lib/request.php', {
+                            action: 'addSongToPlaylist',
+                            id_song: songId,
+                            id_playlist: playlistId
+                        }, function(){
+                            alert('Chanson ajoutée à la playlist');
+                            modal2.remove();
+                        });
+                    });
+                }
             });
         }
     });
