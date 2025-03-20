@@ -370,8 +370,6 @@
             } else {;
                 echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout du commentaire V2."]);
             }
-        } else {
-            echo json_encode(["success" => false, "message" => "Mail, id de la chanson ou commentaire non fourni."]);
         }
     }
 
@@ -406,6 +404,30 @@
 
 
     /* ----- -----   ----- -----     Live Search     ----- -----   ----- ----- */
+
+    function song_search($db, $input){
+        $sql = "SELECT id_song, name, song, picture, id_artist FROM songs WHERE name LIKE '%$input%' OR song LIKE '%$input%' OR id_song LIKE '%$input%'";
+        $index = 0;
+    
+        $result = mysqli_query($db, $sql);
+    
+        if (mysqli_num_rows($result) > 0){
+            echo "<br>";
+            while ($row = mysqli_fetch_assoc($result)){                
+                echo "<div class='card-musique' data-song-id='$row[id_song]' data-index='$index'>";
+                echo "<img src='$row[picture]' alt='$row[name]' class='card-img'>";
+                echo "<h3 class='card-title'>$row[name]</h3>";
+                echo "<h3 class='card-play'>";
+                echo "<button class='play-button' data-index='$index'>▶️</button>";
+                echo "</h3>";
+                echo "</div>";
+                $index++;
+            }
+        } else {
+            echo "<p>Aucun résultat trouvé</p>";
+        }
+    }
+    
 
     function live_search($db, $input){
         $queries = [
@@ -444,6 +466,11 @@
         if (!$results_found){
             echo "<p>Aucun résultat trouvé</p>";
         }
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == "song_search") {
+        $input = $_POST['search'];
+        song_search($db, $input);
     }
 
     if (isset($_POST['action']) && $_POST['action'] == "live_search") {
