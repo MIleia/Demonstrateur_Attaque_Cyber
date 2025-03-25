@@ -1,37 +1,72 @@
-$(document).ready(function (){
-    // Funcion to get the cookie
-    function getCookie(name) {
-        let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? match[2] : null;
-    }
+let usermail = null;
+let username = null;
 
-    let username = getCookie('username');
-    let profilePicture = getCookie('profile_picture');
-    let usermail = getCookie('mail');
+$(document).ready(function(){
+    $.ajax({
+        url: 'lib/session.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (!response.loggedIn) {
+                window.location.href = "login.html";
+            } else {
+                usermail = response.mail;
+                username = response.username;
+                
+                // Update the user's name and email
+                $('#user-name').text(username);
+                $('#usermail').text(usermail);
 
-    // Check if the user is connected
-    if (!usermail){
-        window.location.href = "login.html";
-    }
+                console.log("Utilisateur connecté :", usermail);
+                console.log("Nom d'utilisateur :", username);
 
-    // Display the user name
-    if (username){
-        $('#user-name').text(username);
-    }
+                // Call the function to initialize the user data
+                initUserData();
+            }
+        },
+        error: function() {
+            alert('Erreur lors de la vérification de la session.');
+        }
+    });
+});
+
+
+function initUserData(){
+    // Recuperation des sessions
+    /*
+    let username = $('#usersname').text();
+    let profilePicture = $('#profile-picture').attr('src');
+    let usermail = $('#usermail').text();*/
 
     // Deconnection button
+    /*
     $('#logout-button').click(
         function(){
             document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "profile_picture=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             document.cookie = "mail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "login.html";
+
+            session_start();
+            session_unset();
+            session_destroy()
         }
     );
+    */
+
+    $('#logout-button').click(function(){
+        $.ajax({
+            url: 'lib/request.php?action=logout',
+            type: 'GET',
+            success: function() {
+                window.location.href = "login.html";
+            }
+        });
+    });
 
     // Search bar
     $(document).ready(function(){
-        $("#search").keyup(function() {
+        $("#search").keyup(function(){
             var input = $(this).val();
             if (input != "") {
                 $.post("lib/request.php", { action: "song_search", search: input }, function(response) {
@@ -54,43 +89,11 @@ $(document).ready(function (){
 
     // ------ -----   ----- -----     Major     ----- -----   ----- ----- //
 
-    // Display the user's linked songs
-    if (usermail){
-        $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
-            if (data.success){
-                let favoriteSongsContainer = $('#favorite-songs-container').empty();
-                $.each(data.songs, function(index, song){
-                    let songElement = $(`
-                        <div class="card-favorite-song" data-song-id="${song.id_song}">
-                            <img src="${song.picture}" alt="${song.name}" class="card-img">
-                            <p>${song.name}</p>
-                            <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
-                        </div>
-                    `);
-                    favoriteSongsContainer.append(songElement);
-
-                    // Check if the song is clicked
-                    songElement.click(function(){
-                        playSongById(song.id_song);
-                    });
-
-                    // Delete the song from the favorites
-                    songElement.find('.remove-favorite').click(function(event){
-                        event.stopPropagation();
-                        let songId = $(this).data('song-id');
-                        $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function (){
-                            $(`.card-favorite-song[data-song-id="${songId}"]`).remove();
-                        });
-                    });
-
-                });
-            }
-        });
-    }
-
+    displayFavoriteSongs();
+    
     // Display the user's playlists
     if (usermail){
-        $.getJSON('lib/request.php?action=getPlaylists', function(data){
+        $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
             if (data.success){
                 let playlistsElement = $('.playlists');
                 data.playlists.forEach(playlist => {
@@ -134,7 +137,7 @@ $(document).ready(function (){
                     if (playlistName) {
                         let postData = {
                             action: "createPlaylist",
-                            //mail: usermail,
+                            mail: usermail,
                             playlist_name: playlistName
                         };
                 
@@ -254,7 +257,7 @@ $(document).ready(function (){
         }
     }
 
-   // Get all songs
+    // Get all songs
     $.getJSON('lib/request.php?action=getSongs', function(data){
         if (data.success){
             let songsElement = $('#songs');
@@ -379,6 +382,7 @@ $(document).ready(function (){
                 $.post('lib/request.php', {
                     action: 'addComment',
                     id_song: id_song,
+                    mail: usermail,
                     comment: commentText
                 }, function(){
                     $date = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -481,42 +485,14 @@ $(document).ready(function (){
         if (songId){
             $.post('lib/request.php', {
                 action: 'addLike',
-                id_song: songId
+                id_song: songId,
+                mail: usermail
             }, function(){
                 likeButton.css('color', 'red');
                 alert('Chanson ajoutée aux favoris');
                 
                 // Update the favorite songs
-                $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
-                    if (data.success){
-                        let favoriteSongsContainer = $('#favorite-songs-container').empty();
-                        $.each(data.songs, function(index, song){
-                            let songElement = $(`
-                                <div class="card-favorite-song" data-song-id="${song.id_song}">
-                                    <img src="${song.picture}" alt="${song.name}" class="card-img">
-                                    <p>${song.name}</p>
-                                    <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
-                                </div>
-                            `);
-                            favoriteSongsContainer.append(songElement);
-
-                            // Check if the song is clicked
-                            songElement.click(function(){
-                                playSongById(song.id_song);
-                            });
-
-                            // Delete the song from the favorites
-                            songElement.find('.remove-favorite').click(function(event){
-                                event.stopPropagation();
-                                let songId = $(this).data('song-id');
-                                $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function (){
-                                    $(`.card-favorite-song[data-song-id="${songId}"]`).remove();
-                                });
-                            });
-
-                        });
-                    }
-                });
+                displayFavoriteSongs();
             });
         }
     });
@@ -525,7 +501,7 @@ $(document).ready(function (){
     AddPlaylist.click(() => {
         let songId = songsList[currentSongIndex]?.id_song;
         if (songId){
-            $.getJSON('lib/request.php?action=getPlaylists', function(data){
+            $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
                 if (data.success){
                     let playlists = data.playlists;
                     // Create the modal
@@ -565,43 +541,77 @@ $(document).ready(function (){
 
     // ------ -----   ----- -----     Other Functions     ----- -----   ----- ----- //
 
-    // Function to delete a song from the playlist
-    function deleteSongFromPlaylist(songId, playlistId, songElement){
-        $.ajax({
-            url: "lib/request.php",
-            type: "POST",
-            data: {
-                action: "deleteSongFromPlaylist",
-                id_song: songId,
-                id_playlist: playlistId
-            },
-            dataType: "json",
-            success: function (response){
-                if (response.success){
-                    songElement.remove();
-                } else {
-                    alert("Erreur : " + response.message);
+    // Function to show the artist button or admin button
+    $(document).ready(function(){
+        $.getJSON("lib/request.php?action=checkUserType&mail=" + usermail, function(data){
+            if (data.success){
+                if (data.role === "artist"){
+                    $("#artiste-button").show();
                 }
-            },
-            error: function (xhr, status, error){
-                console.error("Erreur AJAX :", error);
+                if (data.role === "admin"){
+                    $("#admin-button").show();
+                }
             }
         });
-    }
-});
+    });
+}
 
-// Function to show the artist button or admin button
-$(document).ready(function(){
-    $.getJSON("lib/request.php?action=checkUserType", function(data){
+
+
+// Display the favorite songs
+function displayFavoriteSongs(){
+    $.getJSON(`lib/request.php?action=getLikedSong&mail=${usermail}`, function(data){
         if (data.success){
-            if (data.role === "artist"){
-                $("#artiste-button").show();
-            }
-            if (data.role === "admin"){
-                $("#admin-button").show();
-            }
+            let favoriteSongsContainer = $('#favorite-songs-container').empty();
+            $.each(data.songs, function(index, song){
+                let songElement = $(`
+                    <div class="card-favorite-song" data-song-id="${song.id_song}">
+                        <img src="${song.picture}" alt="${song.name}" class="card-img">
+                        <p>${song.name}</p>
+                        <img src="images/heart2.png" alt="Retirer des favoris" class="remove-favorite" data-song-id="${song.id_song}">
+                    </div>
+                `);
+                favoriteSongsContainer.append(songElement);
+
+                // Check if the song is clicked
+                songElement.click(function(){
+                    playSongById(song.id_song);
+                });
+
+                // Delete the song from the favorites
+                songElement.find('.remove-favorite').click(function(event){
+                    event.stopPropagation();
+                    let songId = $(this).data('song-id');
+                    $.get(`lib/request.php?action=removeLikedSong&mail=${usermail}&id_song=${songId}`, function (){
+                        $(`.card-favorite-song[data-song-id="${songId}"]`).remove();
+                    });
+                });
+
+            });
         }
     });
-});
+}
 
-
+// Function to delete a song from the playlist
+function deleteSongFromPlaylist(songId, playlistId, songElement){
+    $.ajax({
+        url: "lib/request.php",
+        type: "POST",
+        data: {
+            action: "deleteSongFromPlaylist",
+            id_song: songId,
+            id_playlist: playlistId
+        },
+        dataType: "json",
+        success: function (response){
+            if (response.success){
+                songElement.remove();
+            } else {
+                alert("Erreur : " + response.message);
+            }
+        },
+        error: function (xhr, status, error){
+            console.error("Erreur AJAX :", error);
+        }
+    });
+}
