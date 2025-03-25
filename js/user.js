@@ -1,13 +1,24 @@
+// Initialize the user data
 let usermail = null;
 let username = null;
 
+// Initiliaze the page data
+let musicFooter = $('.music-footer');
+let likeButton = musicFooter.find('.like-button');
+let AddPlaylist = musicFooter.find('.add-to-playlist-button');
+let audio = new Audio();
+let currentSongIndex = 0;
+let songsList = [];
+
+
+// Main function
 $(document).ready(function(){
     $.ajax({
         url: 'lib/session.php',
         type: 'GET',
         dataType: 'json',
-        success: function(response) {
-            if (!response.loggedIn) {
+        success: function(response){
+            if (!response.loggedIn){
                 window.location.href = "login.html";
             } else {
                 usermail = response.mail;
@@ -17,43 +28,24 @@ $(document).ready(function(){
                 $('#user-name').text(username);
                 $('#usermail').text(usermail);
 
-                console.log("Utilisateur connecté :", usermail);
-                console.log("Nom d'utilisateur :", username);
+                // display the user's profile picture
+                if (response.profile_picture){
+                    $('#profile-picture').attr('src', response.profile_picture);
+                }
 
                 // Call the function to initialize the user data
                 initUserData();
             }
         },
-        error: function() {
+        error: function(){
             alert('Erreur lors de la vérification de la session.');
         }
     });
 });
 
 
+// Display page data
 function initUserData(){
-    // Recuperation des sessions
-    /*
-    let username = $('#usersname').text();
-    let profilePicture = $('#profile-picture').attr('src');
-    let usermail = $('#usermail').text();*/
-
-    // Deconnection button
-    /*
-    $('#logout-button').click(
-        function(){
-            document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "profile_picture=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            document.cookie = "mail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = "login.html";
-
-            session_start();
-            session_unset();
-            session_destroy()
-        }
-    );
-    */
-
     $('#logout-button').click(function(){
         $.ajax({
             url: 'lib/request.php?action=logout',
@@ -64,33 +56,13 @@ function initUserData(){
         });
     });
 
-    // Search bar
-    $(document).ready(function(){
-        $("#search").keyup(function(){
-            var input = $(this).val();
-            if (input != "") {
-                $.post("lib/request.php", { action: "song_search", search: input }, function(response) {
-                    $("#search-result").html(response);
-                    $(".card-musique").click(function() {
-                        let songId = $(this).data("song-id");
-                        let song = songsList.find(s => s.id_song == songId);
-                        if (song) {
-                            let index = songsList.indexOf(song);
-                            playSong(index);
-                        }
-                    });
-                });
-            } else {
-                $("#search-result").html("");
-            }
-        });
-    });
 
+    showButton();
+    search();
+    displayFavoriteSongs();
 
     // ------ -----   ----- -----     Major     ----- -----   ----- ----- //
 
-    displayFavoriteSongs();
-    
     // Display the user's playlists
     if (usermail){
         $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
@@ -174,14 +146,7 @@ function initUserData(){
                 console.error('Erreur lors de la récupération des playlists');
             }
         }).fail(error => console.error("Erreur lors de la récupération des playlists :", error));
-    }
-
-    // Function to delete a playlist
-    function deletePlaylist(id_playlist, playlistElement){
-        $.get(`lib/request.php?action=deletePlaylist&id_playlist=${id_playlist}`, function(){
-            playlistElement.remove();
-        });
-    }
+    } 
 
     // Function to show the playlist songs
     function showPlaylistSongs(id_playlist, playlistName){
@@ -247,14 +212,6 @@ function initUserData(){
                 }
             },
         });
-    }
-
-    // function to play a song by id
-    function playSongById(songId){
-        let song = songsList.find(s => s.id_song === songId);
-        if (song){
-            playSong(songsList.indexOf(song));
-        }
     }
 
     // Get all songs
@@ -411,44 +368,6 @@ function initUserData(){
 
     // ------ -----   ----- -----     Music player     ----- -----   ----- ----- //
 
-    let musicFooter = $('.music-footer');
-    let likeButton = musicFooter.find('.like-button');
-    let AddPlaylist = musicFooter.find('.add-to-playlist-button');
-    let audio = new Audio();
-    let currentSongIndex = 0;
-    let songsList = [];
-
-   // Function to play a song by index
-    function playSong(index){
-        let song = songsList[index];
-        let musicFooter = $('.music-footer');
-        let musicImage = musicFooter.find('img');
-        let musicTitle = musicFooter.find('span');
-        let playButton = musicFooter.find('.play-button');
-
-        // If the song is already playing, pause it
-        if (audio.src.includes(song.song) && !audio.paused){
-            audio.pause();
-            playButton.text('▶️'); // Icône Play
-            return;
-        }
-
-        // Play the song
-        audio.src = `songs/${song.song}`;
-        audio.play();
-        playButton.text('⏸️'); // Icône Pause
-        musicTitle.text(song.name);
-        musicImage.attr('src', song.picture);
-
-        currentSongIndex = index;
-
-        // Play the next song when the current song ends
-        audio.onended = function (){
-            currentSongIndex = (currentSongIndex + 1) % songsList.length;
-            playSong(currentSongIndex);
-        };
-    }
-
     // Function to play the previous song
     $(document).on('click', '.prev-button', function(){
         currentSongIndex = (currentSongIndex - 1 + songsList.length) % songsList.length;
@@ -537,26 +456,46 @@ function initUserData(){
             });
         }
     });
+}
 
-
-    // ------ -----   ----- -----     Other Functions     ----- -----   ----- ----- //
-
-    // Function to show the artist button or admin button
-    $(document).ready(function(){
-        $.getJSON("lib/request.php?action=checkUserType&mail=" + usermail, function(data){
-            if (data.success){
-                if (data.role === "artist"){
-                    $("#artiste-button").show();
-                }
-                if (data.role === "admin"){
-                    $("#admin-button").show();
-                }
+// Function to show the artist button or admin button
+function showButton(){
+    $.getJSON("lib/request.php?action=checkUserType&mail=" + usermail, function(data){
+        if (data.success){
+            if (data.role === "artist"){
+                $("#artiste-button").show();
             }
-        });
+            if (data.role === "admin"){
+                $("#admin-button").show();
+            }
+        }
+    });
+}
+
+// Search bar
+function search(){
+    $("#search").keyup(function(){
+        var input = $(this).val();
+        if (input != "") {
+            $.post("lib/request.php", {action: "song_search", search: input}, function(response){
+                $("#search-result").html(response);
+                $(".card-musique").click(function(){
+                    let songId = $(this).data("song-id");
+                    let song = songsList.find(s => s.id_song == songId);
+                    if (song){
+                        let index = songsList.indexOf(song);
+                        playSong(index);
+                    }
+                });
+            });
+        } else {
+            $("#search-result").html("");
+        }
     });
 }
 
 
+// ------ -----   ----- -----     Likes     ----- -----   ----- ----- //
 
 // Display the favorite songs
 function displayFavoriteSongs(){
@@ -592,6 +531,9 @@ function displayFavoriteSongs(){
     });
 }
 
+
+// ------ -----   ----- -----     Playlists     ----- -----   ----- ----- //
+
 // Function to delete a song from the playlist
 function deleteSongFromPlaylist(songId, playlistId, songElement){
     $.ajax({
@@ -603,15 +545,65 @@ function deleteSongFromPlaylist(songId, playlistId, songElement){
             id_playlist: playlistId
         },
         dataType: "json",
-        success: function (response){
+        success: function(response){
             if (response.success){
                 songElement.remove();
             } else {
                 alert("Erreur : " + response.message);
             }
         },
-        error: function (xhr, status, error){
+        error: function(error){
             console.error("Erreur AJAX :", error);
         }
     });
 }
+
+// Function to delete a playlist
+function deletePlaylist(id_playlist, playlistElement){
+    $.get(`lib/request.php?action=deletePlaylist&id_playlist=${id_playlist}`, function(){
+        playlistElement.remove();
+    });
+}
+
+
+// ------ -----   ----- -----     Music player     ----- -----   ----- ----- //
+
+// function to play a song by id
+function playSongById(songId){
+    let song = songsList.find(s => s.id_song === songId);
+    if (song){
+        playSong(songsList.indexOf(song));
+    }
+}
+
+function playSong(index){
+    let song = songsList[index];
+    let musicFooter = $('.music-footer');
+    let musicImage = musicFooter.find('img');
+    let musicTitle = musicFooter.find('span');
+    let playButton = musicFooter.find('.play-button');
+
+    // If the song is already playing, pause it
+    if (audio.src.includes(song.song) && !audio.paused){
+        audio.pause();
+        playButton.text('▶️');
+        return;
+    }
+
+    // Play the song
+    audio.src = `songs/${song.song}`;
+    audio.play();
+    playButton.text('⏸️');
+    musicTitle.text(song.name);
+    musicImage.attr('src', song.picture);
+
+    currentSongIndex = index;
+
+    // Play the next song when the current song ends
+    audio.onended = function (){
+        currentSongIndex = (currentSongIndex + 1) % songsList.length;
+        playSong(currentSongIndex);
+    };
+}
+
+

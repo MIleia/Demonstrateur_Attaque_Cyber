@@ -260,7 +260,6 @@
     // Function to add a song to a playlist
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "addSongToPlaylist"){
         if (isset($_POST["id_song"]) && isset($_POST["id_playlist"])){
-            error_log("id_song: " . $_POST["id_song"]);
             $result = dbAddSongToPlaylist($db, $_POST["id_playlist"], $_POST["id_song"]);
             if ($result === true){
                 echo json_encode(["success" => true]);
