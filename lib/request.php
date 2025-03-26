@@ -292,7 +292,9 @@
 
         if ($username){
             $success = dbUpdateUsername($db, $mail, $username);
-            setcookie("username", $username, time() + 86400, "/");
+
+            // Update the session
+            $_SESSION['username'] = $username;
         }
         if ($password){
             $success = dbUpdatePassword($db, $mail, $password);
@@ -304,7 +306,9 @@
             $allowTypes = array('jpg', 'png', 'jpeg', 'gif');
             if (in_array($fileType, $allowTypes)){
                 $success = dbUpdateProfilePicture($db, $mail, $targetFilePath);
-                setcookie("profile_picture", $targetFilePath, time() + 86400, "/");
+                
+                // Update the session
+                $_SESSION['profile_picture'] = $targetFilePath;
             } else {
                 echo json_encode(["success" => false, "message" => "Erreur lors du téléchargement de l'image."]);
                 exit;

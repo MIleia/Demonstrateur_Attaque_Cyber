@@ -13,12 +13,16 @@ $(document).ready(function(){
                 usermail = response.mail;
                 username = response.username;
                 
+                // Update the user's name and email
                 $('#user-name').text(username);
                 $('#usermail').text(usermail);
 
-                console.log("Utilisateur connecté :", usermail);
-                console.log("Nom d'utilisateur :", username);
+                // display the user's profile picture
+                if (response.profile_picture){
+                    $('#profilePicture').attr('src', response.profile_picture);
+                }
 
+                // Call the function to initialize the user data
                 initUserData();
             }
         },
@@ -106,9 +110,6 @@ function initUserData(){
     // Mise à jour du profil avec les données récupérées
     $("#usernameInput").val(username);
     $("#username").text(username);
-    if (profilePicture) {
-        $("#profilePicture").attr("src", profilePicture);
-    }
 }
 
 
