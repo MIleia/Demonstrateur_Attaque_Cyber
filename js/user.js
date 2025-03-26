@@ -33,8 +33,8 @@ $(document).ready(function(){
                     $('#profile-picture').attr('src', response.profile_picture);
                 }
 
-                // Call the function to initialize the user data
-                initUserData();
+                // Call the function to initialize the page data
+                initData();
             }
         },
         error: function(){
@@ -45,7 +45,26 @@ $(document).ready(function(){
 
 
 // Display page data
-function initUserData(){
+function initData(){
+    logout();
+    showButton();
+    search();
+    displayFavoriteSongs();
+    displayPlaylists();
+    getSongs();
+    playPreviousSong();
+    playNextSong();
+    changeButton();
+    ProgressBar();
+    addLike();
+    addToPlaylist();
+}
+
+
+// ------ -----   ----- -----     Header     ----- -----   ----- ----- //
+
+// Logout
+function logout(){
     $('#logout-button').click(function(){
         $.ajax({
             url: 'lib/request.php?action=logout',
@@ -55,410 +74,9 @@ function initUserData(){
             }
         });
     });
-
-
-    showButton();
-    search();
-    displayFavoriteSongs();
-
-    // ------ -----   ----- -----     Major     ----- -----   ----- ----- //
-
-    // Display the user's playlists
-    if (usermail){
-        $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
-            if (data.success){
-                let playlistsElement = $('.playlists');
-                data.playlists.forEach(playlist => {
-                    let playlistElement = $(`
-                        <div class="card-playlist">
-                            <div class="card-content">
-                                <h3 class="card-title">${playlist.playlist_name}</h3>
-                                <div class="delete-container">
-                                    <button class="delete-playlist-button"></button>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                    playlistElement.click(function(){
-                        showPlaylistSongs(playlist.id_playlist, playlist.playlist_name);
-                    });
-
-                    // Check if the playlist is clicked
-                    playlistElement.find('.delete-playlist-button').on('click', function (e){
-                        e.stopPropagation();
-                        if (confirm('Êtes-vous sûr de vouloir supprimer cette playlist ?')){
-                            deletePlaylist(playlist.id_playlist, playlistElement);
-                        }
-                    });
-
-                    playlistsElement.append(playlistElement);
-                });
-
-                // card to create a new playlist
-                let createPlaylistElement = $(`
-                    <div class="card-playlist">
-                        <div class="card-content">
-                            <h3 class="card-title">➕</h3>
-                        </div>
-                    </div>
-                `);
-
-                // Creation of a new playlist
-                createPlaylistElement.click(() => {
-                    let playlistName = prompt("Nom de la playlist :");
-                    if (playlistName) {
-                        let postData = {
-                            action: "createPlaylist",
-                            mail: usermail,
-                            playlist_name: playlistName
-                        };
-                
-                        $.ajax({
-                            url: "lib/request.php",
-                            type: "POST",
-                            data: postData,
-                            dataType: "json",
-                            success: function (response){
-                                if (response.success){
-                                    let newPlaylistElement = $(`
-                                        <div class="card-playlist">
-                                            <div class="card-content">
-                                                <h3 class="card-title">${playlistName}</h3>
-                                                <div class="delete-container">
-                                                    <button class="delete-playlist-button"></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `);
-                                    $(".playlists").append(newPlaylistElement);
-                                } else {
-                                    alert("Erreur lors de la création de la playlist: " + response.message);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Erreur AJAX :", xhr.responseText);
-                            }
-                        });
-                    }
-                });
-                playlistsElement.append(createPlaylistElement);
-            } else {
-                console.error('Erreur lors de la récupération des playlists');
-            }
-        }).fail(error => console.error("Erreur lors de la récupération des playlists :", error));
-    } 
-
-    // Function to show the playlist songs
-    function showPlaylistSongs(id_playlist, playlistName){
-        $.ajax({
-            url: `lib/request.php?action=getPlaylistSongs&id_playlist=${id_playlist}`,
-            type: 'GET',
-            dataType: 'json',
-            success: async function(data){
-                if (data.success){
-                    let oldModal = $('.modal');
-                    if (oldModal.length) oldModal.remove();
-
-                    let modal = $(`
-                        <div class="modal">
-                            <div class="modal-content">
-                                <span class="close-button">&times;</span>
-                                <h2>${playlistName}</h2>
-                                <div class="playlist-songs"></div>
-                            </div>
-                        </div>
-                    `);
-                    $('body').append(modal);
-                    let songsContainer = modal.find('.playlist-songs');
-
-                    if (data.songs.length > 0) {
-                        for (let song of data.songs){
-                            
-                            // Get the artist name
-                            if (song.id_artist){
-                                let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
-                                song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
-                            } else {
-                                song.artist = "Artiste inconnu";
-                            }
-
-                            let songDiv = $(`
-                                <div class="playlist-song">
-                                    <p>${song.name} - <span class="artist-name">${song.artist}</span></p>
-                                    <button class="delete-button" data-song-id="${song.id_song}">Supprimer</button>
-                                </div>
-                            `);
-
-                            // Delete the song from the playlist
-                            songDiv.find('.delete-button').on('click', function(){
-                                deleteSongFromPlaylist(song.id_song, id_playlist, songDiv);
-                            });
-
-                            // Play the song when clicked
-                            songDiv.on('click', function(){
-                                if (!$(event.target).hasClass('delete-button')){
-                                    playSongById(song.id_song);
-                                }
-                            });
-                            songsContainer.append(songDiv);
-                        }
-                    } else {
-                        songsContainer.html("<p>Aucune chanson dans cette playlist.</p>");
-                    }
-
-                    modal.find('.close-button').on('click', function(){
-                        modal.remove();
-                    });
-                }
-            },
-        });
-    }
-
-    // Get all songs
-    $.getJSON('lib/request.php?action=getSongs', function(data){
-        if (data.success){
-            let songsElement = $('#songs');
-            songsList = data.songs;
-            
-            // Display each song
-            songsList.forEach(async (song, index) => {
-                // Get the album name
-                if (song.id_song){
-                    let albumData = await $.getJSON(`lib/request.php?action=getAlbumName&id_song=${song.id_song}`);
-                    song.album = albumData.success ? albumData.albumName : "Aucun album";
-                } else {
-                    song.album = "Aucun album";
-                }
-
-                // Get the artist name
-                if (song.id_artist){
-                    let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
-                    song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
-                } else {
-                    song.artist = "Artiste inconnu";
-                }
-
-                // Create the song element
-                let songElement = $(`
-                    <div class="card-musique" data-song-id="${song.id_song}">
-                        <img src="${song.picture}" alt="${song.name}" class="card-img">
-                        <h3 class="card-title">${song.name}</h3>
-                        <h3 class="card-album">${song.album}</h3>
-                        <h3 class="card-singer">${song.artist}</h3>
-                        <h3 class="card-play">
-                            <button class="play-button" data-index="${index}">▶️</button>
-                        </h3>
-                    </div>
-                `);
-                songsElement.append(songElement);
-
-                // Play the song when clicked
-                songElement.find('.play-button').click(function(){
-                    let songIndex = $(this).data('index');
-                    playSong(songIndex);
-                });
-
-                // Show the song comments when clicked
-                songElement.click(function (e){
-                    if (!$(e.target).hasClass('.play-button')){
-                        showSongComments(song.id_song);
-                    }
-                });
-            });
-        }
-    });
-
-    // Function to show the song comments
-    function showSongComments(id_song){
-        let existingModal = $("#commentModal");
-
-        if (existingModal.length){
-            existingModal.remove();
-        }
-    
-        // Create the modal
-        const modal = $('<div id="commentModal" class="modal"></div>');
-        const modalContent = $('<div class="modal-content"></div>');
-        const closeBtn = $('<span class="close-button">&times;</span>');
-        const title = $('<h2>Commentaires</h2>');
-        const commentsList = $('<div id="commentsList"></div>');
-        const commentForm = $(`
-            <div id="commentForm">
-                <textarea id="commentText" placeholder="Ajouter un commentaire" rows="4" cols="50"></textarea>
-                <button id="submitComment">Ajouter</button>
-            </div>
-        `);
-    
-        // Add the elements to the modal
-        modalContent.append(closeBtn, title, commentsList, commentForm);
-        modal.append(modalContent);
-        $('body').append(modal);
-    
-        // Close the modal
-        closeBtn.on('click', function(){
-            modal.remove();
-        });
-    
-        // Get the comments
-        $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, function(data){
-            // Clear the comments list
-            commentsList.empty();
-    
-            if (data.success && data.comments.length > 0) {
-                data.comments.forEach(comment => {
-                    // Get username of the comment
-                    if (comment.mail){
-                        $.getJSON(`lib/request.php?action=getUsername&mail=${comment.mail}`, function(data){
-                            if (data.success){
-                                comment.username = data.username;
-                            }
-                        });
-                    }
-
-                    // Display the comment
-                    let commentElement = $(`
-                        <div class="comment">
-                            <strong>${comment.mail} :</strong> ${comment.comment}
-                            <br><span style="font-size: 12px; color: gray;">Posté le ${comment.comment_date}</span>
-                        </div>
-                        <hr>
-                    `);
-                    commentsList.append(commentElement);
-                });
-            } else {
-                commentsList.append("<p>Aucun commentaire pour ce son.</p>");
-            }
-            modal.show();
-        });
-    
-        // Add a comment
-        modal.find('#submitComment').on('click', function(){
-            const commentText = modal.find('#commentText').val().trim();
-    
-            if (commentText !== ""){
-                $.post('lib/request.php', {
-                    action: 'addComment',
-                    id_song: id_song,
-                    mail: usermail,
-                    comment: commentText
-                }, function(){
-                    $date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                    let commentElement = $(`
-                        <div class="comment">
-                            <strong>${username} :</strong> ${commentText}
-                            <br><span style="font-size: 12px; color: gray;">Posté le ${$date}</span>
-                        </div>
-                        <hr>
-                    `);
-                    commentsList.append(commentElement);
-                    modal.find('#commentText').val('');
-                });
-            } else {
-                alert("Le commentaire ne peut pas être vide.");
-            }
-        });
-    }    
-    
-    // Show the song comments when clicked
-    $('#songs').on('click', '.card-musique', function(){
-        let songId = $(this).data('song-id');
-        showSongComments(songId);
-    });    
-    
-
-    // ------ -----   ----- -----     Music player     ----- -----   ----- ----- //
-
-    // Function to play the previous song
-    $(document).on('click', '.prev-button', function(){
-        currentSongIndex = (currentSongIndex - 1 + songsList.length) % songsList.length;
-        playSong(currentSongIndex);
-    });
-
-    // Function to play the next song
-    $(document).on('click', '.next-button', function(){
-        currentSongIndex = (currentSongIndex + 1) % songsList.length;
-        playSong(currentSongIndex);
-    });
-
-    // Change the play button or pause button
-    let playButton = $('.music-footer').find('.play-button');
-    playButton.click(function(){
-        if (audio.paused){
-            audio.play();
-            playButton.text('⏸️');
-        } else {
-            audio.pause();
-            playButton.text('▶️');
-        }
-    });
-
-    // Update the progress bar
-    audio.addEventListener('timeupdate', function(){
-        let progress = (audio.currentTime / audio.duration) * 100;
-        $('.progress-fill').css('width', progress + '%');
-    });    
-
-    // Add a like to the song
-    likeButton.click(() => {
-        let songId = songsList[currentSongIndex]?.id_song;
-        if (songId){
-            $.post('lib/request.php', {
-                action: 'addLike',
-                id_song: songId,
-                mail: usermail
-            }, function(){
-                likeButton.css('color', 'red');
-                alert('Chanson ajoutée aux favoris');
-                
-                // Update the favorite songs
-                displayFavoriteSongs();
-            });
-        }
-    });
-
-    // Add a song to a playlist
-    AddPlaylist.click(() => {
-        let songId = songsList[currentSongIndex]?.id_song;
-        if (songId){
-            $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
-                if (data.success){
-                    let playlists = data.playlists;
-                    // Create the modal
-                    let select = $('<select>');
-                    playlists.forEach(playlist => {
-                        select.append(`<option value="${playlist.id_playlist}">${playlist.playlist_name}</option>`);
-                    });
-                    select.prepend('<option value="" selected>Choisir une playlist</option>');
-                    let modal2 = $('<div class="modal"></div>');
-                    let modalContent = $('<div class="modal-content"></div>');
-                    let closeButton = $('<span class="close-button">&times;</span>');
-                    let title = $('<h2>Ajouter à une playlist</h2>');
-                    modalContent.append(closeButton, title, select);
-                    modal2.append(modalContent);
-                    $('body').append(modal2);
-                    closeButton.click(function(){
-                        modal2.remove();
-                    });
-
-                    // Add the song to the selected playlist
-                    select.change(function(){
-                        let playlistId = select.val();
-                        $.post('lib/request.php', {
-                            action: 'addSongToPlaylist',
-                            id_song: songId,
-                            id_playlist: playlistId
-                        }, function(){
-                            alert('Chanson ajoutée à la playlist');
-                            modal2.remove();
-                        });
-                    });
-                }
-            });
-        }
-    });
 }
 
-// Function to show the artist button or admin button
+// Display the artist button or admin button
 function showButton(){
     $.getJSON("lib/request.php?action=checkUserType&mail=" + usermail, function(data){
         if (data.success){
@@ -534,7 +152,79 @@ function displayFavoriteSongs(){
 
 // ------ -----   ----- -----     Playlists     ----- -----   ----- ----- //
 
-// Function to delete a song from the playlist
+// Display the playlists
+function displayPlaylists(){
+    $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
+        if (data.success){
+            let playlistsElement = $('.playlists');
+            data.playlists.forEach(playlist => {
+                let playlistElement = $(`
+                    <div class="card-playlist">
+                        <div class="card-content">
+                            <h3 class="card-title">${playlist.playlist_name}</h3>
+                            <div class="delete-container">
+                                <button class="delete-playlist-button"></button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                playlistElement.click(function(){
+                    showPlaylistSongs(playlist.id_playlist, playlist.playlist_name);
+                });
+
+                // Check if the playlist is clicked
+                playlistElement.find('.delete-playlist-button').on('click', function (e){
+                    e.stopPropagation();
+                    if (confirm('Êtes-vous sûr de vouloir supprimer cette playlist ?')){
+                        deletePlaylist(playlist.id_playlist, playlistElement);
+                    }
+                });
+
+                playlistsElement.append(playlistElement);
+            });
+
+            // card to create a new playlist
+            let createPlaylistElement = $(`
+                <div class="card-playlist">
+                    <div class="card-content">
+                        <h3 class="card-title">➕</h3>
+                    </div>
+                </div>
+            `);
+
+            // Creation of a new playlist
+            createPlaylistElement.click(() => {
+                let playlistName = prompt("Nom de la playlist :");
+                if (playlistName){
+                    let postData = {action: "createPlaylist", mail: usermail, playlist_name: playlistName};
+            
+                    $.ajax({
+                        url: "lib/request.php",
+                        type: "POST",
+                        data: postData,
+                        dataType: "json",
+                        success: function(response){
+                            if (response.success){
+                                playlistsElement.empty();
+                                displayPlaylists();
+                            } else {
+                                alert("Erreur lors de la création de la playlist: " + response.message);
+                            }
+                        },
+                        error: function (xhr){
+                            console.error("Erreur AJAX :", xhr.responseText);
+                        }
+                    });
+                }
+            });
+            playlistsElement.append(createPlaylistElement);
+        } else {
+            console.error('Erreur lors de la récupération des playlists');
+        }
+    }).fail(error => console.error("Erreur lors de la récupération des playlists :", error));
+}
+
+// Delete a song from the playlist
 function deleteSongFromPlaylist(songId, playlistId, songElement){
     $.ajax({
         url: "lib/request.php",
@@ -558,7 +248,73 @@ function deleteSongFromPlaylist(songId, playlistId, songElement){
     });
 }
 
-// Function to delete a playlist
+// Display the songs of a playlist
+function showPlaylistSongs(id_playlist, playlistName){
+    $.ajax({
+        url: `lib/request.php?action=getPlaylistSongs&id_playlist=${id_playlist}`,
+        type: 'GET',
+        dataType: 'json',
+        success: async function(data){
+            if (data.success){
+                let oldModal = $('.modal');
+                if (oldModal.length) oldModal.remove();
+
+                let modal = $(`
+                    <div class="modal">
+                        <div class="modal-content">
+                            <span class="close-button">&times;</span>
+                            <h2>${playlistName}</h2>
+                            <div class="playlist-songs"></div>
+                        </div>
+                    </div>
+                `);
+                $('body').append(modal);
+                let songsContainer = modal.find('.playlist-songs');
+
+                if (data.songs.length > 0) {
+                    for (let song of data.songs){
+                        
+                        // Get the artist name
+                        if (song.id_artist){
+                            let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
+                            song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
+                        } else {
+                            song.artist = "Artiste inconnu";
+                        }
+
+                        let songDiv = $(`
+                            <div class="playlist-song">
+                                <p>${song.name} - <span class="artist-name">${song.artist}</span></p>
+                                <button class="delete-button" data-song-id="${song.id_song}">Supprimer</button>
+                            </div>
+                        `);
+
+                        // Delete the song from the playlist
+                        songDiv.find('.delete-button').on('click', function(){
+                            deleteSongFromPlaylist(song.id_song, id_playlist, songDiv);
+                        });
+
+                        // Play the song when clicked
+                        songDiv.on('click', function(){
+                            if (!$(event.target).hasClass('delete-button')){
+                                playSongById(song.id_song);
+                            }
+                        });
+                        songsContainer.append(songDiv);
+                    }
+                } else {
+                    songsContainer.html("<p>Aucune chanson dans cette playlist.</p>");
+                }
+
+                modal.find('.close-button').on('click', function(){
+                    modal.remove();
+                });
+            }
+        },
+    });
+}
+
+// Delete a playlist
 function deletePlaylist(id_playlist, playlistElement){
     $.get(`lib/request.php?action=deletePlaylist&id_playlist=${id_playlist}`, function(){
         playlistElement.remove();
@@ -566,9 +322,159 @@ function deletePlaylist(id_playlist, playlistElement){
 }
 
 
+// ------ -----   ----- -----     Songs     ----- -----   ----- ----- //
+
+// Display the songs
+function getSongs(){
+    $.getJSON('lib/request.php?action=getSongs', function(data){
+        if (data.success){
+            let songsElement = $('#songs');
+            songsList = data.songs;
+            
+            // Display each song
+            songsList.forEach(async(song, index) => {
+                // Get the album name
+                if (song.id_song){
+                    let albumData = await $.getJSON(`lib/request.php?action=getAlbumName&id_song=${song.id_song}`);
+                    song.album = albumData.success ? albumData.albumName : "Aucun album";
+                } else {
+                    song.album = "Aucun album";
+                }
+
+                // Get the artist name
+                if (song.id_artist){
+                    let artistData = await $.getJSON(`lib/request.php?action=getArtistName&id_artist=${song.id_artist}`);
+                    song.artist = artistData.success ? artistData.artistName : "Artiste inconnu";
+                } else {
+                    song.artist = "Artiste inconnu";
+                }
+
+                // Create the song element
+                let songElement = $(`
+                    <div class="card-musique" data-song-id="${song.id_song}">
+                        <img src="${song.picture}" alt="${song.name}" class="card-img">
+                        <h3 class="card-title">${song.name}</h3>
+                        <h3 class="card-album">${song.album}</h3>
+                        <h3 class="card-singer">${song.artist}</h3>
+                        <h3 class="card-play">
+                            <button class="play-button" data-index="${index}">▶️</button>
+                        </h3>
+                    </div>
+                `);
+                songsElement.append(songElement);
+
+                // Play the song when clicked
+                songElement.find('.play-button').click(function(){
+                    let songIndex = $(this).data('index');
+                    playSong(songIndex);
+                });
+
+                // Show the song comments when clicked
+                songElement.click(function(e){
+                    if (!$(e.target).hasClass('.play-button')){
+                        showSongComments(song.id_song);
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Display the comments of a song
+function showSongComments(id_song){
+    let existingModal = $("#commentModal");
+
+    if (existingModal.length){
+        existingModal.remove();
+    }
+
+    // Create the modal
+    const modal = $('<div id="commentModal" class="modal"></div>');
+    const modalContent = $('<div class="modal-content"></div>');
+    const closeBtn = $('<span class="close-button">&times;</span>');
+    const title = $('<h2>Commentaires</h2>');
+    const commentsList = $('<div id="commentsList"></div>');
+    const commentForm = $(`
+        <div id="commentForm">
+            <textarea id="commentText" placeholder="Ajouter un commentaire" rows="4" cols="50"></textarea>
+            <button id="submitComment">Ajouter</button>
+        </div>
+    `);
+
+    // Add the elements to the modal
+    modalContent.append(closeBtn, title, commentsList, commentForm);
+    modal.append(modalContent);
+    $('body').append(modal);
+
+    // Close the modal
+    closeBtn.on('click', function(){
+        modal.remove();
+    });
+
+    // Get the comments
+    $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, function(data){
+        // Clear the comments list
+        commentsList.empty();
+
+        if (data.success && data.comments.length > 0) {
+            data.comments.forEach(comment => {
+                // Get username of the comment
+                if (comment.mail){
+                    $.getJSON(`lib/request.php?action=getUsername&mail=${comment.mail}`, function(data){
+                        if (data.success){
+                            comment.username = data.username;
+                        }
+                    });
+                }
+
+                // Display the comment
+                let commentElement = $(`
+                    <div class="comment">
+                        <strong>${comment.mail} :</strong> ${comment.comment}
+                        <br><span style="font-size: 12px; color: gray;">Posté le ${comment.comment_date}</span>
+                    </div>
+                    <hr>
+                `);
+                commentsList.append(commentElement);
+            });
+        } else {
+            commentsList.append("<p>Aucun commentaire pour ce son.</p>");
+        }
+        modal.show();
+    });
+
+    // Add a comment
+    modal.find('#submitComment').on('click', function(){
+        const commentText = modal.find('#commentText').val().trim();
+
+        if (commentText !== ""){
+            $.post('lib/request.php', {
+                action: 'addComment',
+                id_song: id_song,
+                mail: usermail,
+                comment: commentText
+            }, function(){
+                $date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                let commentElement = $(`
+                    <div class="comment">
+                        <strong>${username} :</strong> ${commentText}
+                        <br><span style="font-size: 12px; color: gray;">Posté le ${$date}</span>
+                    </div>
+                    <hr>
+                `);
+                commentsList.append(commentElement);
+                modal.find('#commentText').val('');
+            });
+        } else {
+            alert("Le commentaire ne peut pas être vide.");
+        }
+    });
+}
+
+
 // ------ -----   ----- -----     Music player     ----- -----   ----- ----- //
 
-// function to play a song by id
+// Play a song by id
 function playSongById(songId){
     let song = songsList.find(s => s.id_song === songId);
     if (song){
@@ -576,6 +482,7 @@ function playSongById(songId){
     }
 }
 
+// Play a song
 function playSong(index){
     let song = songsList[index];
     let musicFooter = $('.music-footer');
@@ -604,6 +511,106 @@ function playSong(index){
         currentSongIndex = (currentSongIndex + 1) % songsList.length;
         playSong(currentSongIndex);
     };
+}
+
+// Play the previous song
+function playPreviousSong(){
+    $(document).on('click', '.prev-button', function(){
+        currentSongIndex = (currentSongIndex - 1 + songsList.length) % songsList.length;
+        playSong(currentSongIndex);
+    });
+}
+
+// Play the next song
+function playNextSong(){
+    $(document).on('click', '.next-button', function(){
+        currentSongIndex = (currentSongIndex + 1) % songsList.length;
+        playSong(currentSongIndex);
+    });
+}
+
+// Change the play button
+function changeButton(){
+    let playButton = $('.music-footer').find('.play-button');
+    playButton.click(function(){
+        if (audio.paused){
+            audio.play();
+            playButton.text('⏸️');
+        } else {
+            audio.pause();
+            playButton.text('▶️');
+        }
+    });
+}
+
+// Progress bar
+function ProgressBar(){
+    audio.addEventListener('timeupdate', function(){
+        let progress = (audio.currentTime / audio.duration) * 100;
+        $('.progress-fill').css('width', progress + '%');
+    });
+}
+
+// Add a like to the song
+function addLike(){
+    likeButton.click(() => {
+        let songId = songsList[currentSongIndex]?.id_song;
+        if (songId){
+            $.post('lib/request.php', {
+                action: 'addLike',
+                id_song: songId,
+                mail: usermail
+            }, function(){
+                likeButton.css('color', 'red');
+                alert('Chanson ajoutée aux favoris');
+                
+                // Update the favorite songs
+                displayFavoriteSongs();
+            });
+        }
+    });
+}
+
+// Add a song to a playlist
+function addToPlaylist(){
+    AddPlaylist.click(() => {
+        let songId = songsList[currentSongIndex]?.id_song;
+        if (songId){
+            $.getJSON('lib/request.php?action=getPlaylists&mail=' + usermail, function(data){
+                if (data.success){
+                    let playlists = data.playlists;
+                    let select = $('<select>');
+                    playlists.forEach(playlist => {
+                        select.append(`<option value="${playlist.id_playlist}">${playlist.playlist_name}</option>`);
+                    });
+                    select.prepend('<option value="" selected>Choisir une playlist</option>');
+                    let modal2 = $('<div class="modal"></div>');
+                    let modalContent = $('<div class="modal-content"></div>');
+                    let closeButton = $('<span class="close-button">&times;</span>');
+                    let title = $('<h2>Ajouter à une playlist</h2>');
+                    modalContent.append(closeButton, title, select);
+                    modal2.append(modalContent);
+                    $('body').append(modal2);
+                    closeButton.click(function(){
+                        modal2.remove();
+                    });
+
+                    // Add the song to the selected playlist
+                    select.change(function(){
+                        let playlistId = select.val();
+                        $.post('lib/request.php', {
+                            action: 'addSongToPlaylist',
+                            id_song: songId,
+                            id_playlist: playlistId
+                        }, function(){
+                            alert('Chanson ajoutée à la playlist');
+                            modal2.remove();
+                        });
+                    });
+                }
+            });
+        }
+    });
 }
 
 
