@@ -81,13 +81,14 @@ CREATE TABLE likes (
 
 -- Création de la table comment
 CREATE TABLE comment (
+    id_comment   INT AUTO_INCREMENT NOT NULL,
     mail         VARCHAR(100) NOT NULL,
     id_song      INT NOT NULL,
     comment      VARCHAR(500) NOT NULL,
     comment_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT comment_PK PRIMARY KEY (mail, id_song),
+    CONSTRAINT comment_PK PRIMARY KEY (id_comment),
     CONSTRAINT comment_users_FK FOREIGN KEY (mail) REFERENCES users(mail) ON DELETE CASCADE,
-    CONSTRAINT comment_song0_FK FOREIGN KEY (id_song) REFERENCES songs(id_song) ON DELETE CASCADE
+    CONSTRAINT comment_song_FK FOREIGN KEY (id_song) REFERENCES songs(id_song) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Création de la table appartient (associe chansons et albums)
