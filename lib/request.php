@@ -417,7 +417,9 @@
 
     // Function to get the username
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "getUsername"){
-        if (isset($_POST["mail"])){
+        error_log("mail: " . $_GET["mail"]);
+        if (isset($_GET["mail"])){
+            $mail = $_GET["mail"];
             $result = dbGetUserInfos($db, $mail);
             if ($result !== false){
                 echo json_encode(["success" => true, "username" => $result['username']]);
@@ -427,7 +429,7 @@
         } else {
             echo json_encode(["success" => false, "message" => "Utilisateur non connecté."]);
         }
-    }
+    }    
 
 
 

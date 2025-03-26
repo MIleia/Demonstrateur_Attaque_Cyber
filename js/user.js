@@ -411,32 +411,37 @@ function showSongComments(id_song){
         modal.remove();
     });
 
-    // Get the comments
-    $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, function(data){
-        // Clear the comments list
-        commentsList.empty();
-
-        if (data.success && data.comments.length > 0) {
-            data.comments.forEach(comment => {
-                // Get username of the comment
-                if (comment.mail){
-                    $.getJSON(`lib/request.php?action=getUsername&mail=${comment.mail}`, function(data){
-                        if (data.success){
-                            comment.username = data.username;
-                        }
-                    });
+    // Get the username from the email
+    function getUsername(mail){
+        return new Promise((resolve, reject) => {
+            $.getJSON(`lib/request.php?action=getUsername&mail=${mail}`, function(data){
+                if (data.success){
+                    resolve(data.username);
+                } else {
+                    resolve("Utilisateur inconnu");
                 }
-
-                // Display the comment
+            });
+        });
+    }
+    
+    // Get the comments
+    $.getJSON(`lib/request.php?action=getComments&id_song=${id_song}`, async function(data){
+        commentsList.empty();
+        if (data.success && data.comments.length > 0) {
+            for (const comment of data.comments) {
+                if (comment.mail) {
+                    comment.username = await getUsername(comment.mail);
+                }
+    
                 let commentElement = $(`
                     <div class="comment">
-                        <strong>${comment.mail} :</strong> ${comment.comment}
+                        <strong>${comment.username} :</strong> ${comment.comment}
                         <br><span style="font-size: 12px; color: gray;">Posté le ${comment.comment_date}</span>
                     </div>
                     <hr>
                 `);
                 commentsList.append(commentElement);
-            });
+            }
         } else {
             commentsList.append("<p>Aucun commentaire pour ce son.</p>");
         }
@@ -454,6 +459,10 @@ function showSongComments(id_song){
                 mail: usermail,
                 comment: commentText
             }, function(){
+                if (commentsList.children().length === 1 && commentsList.children().text().includes("Aucun commentaire pour ce son.")){
+                    commentsList.empty();
+                }
+                
                 $date = new Date().toISOString().slice(0, 19).replace('T', ' ');
                 let commentElement = $(`
                     <div class="comment">
