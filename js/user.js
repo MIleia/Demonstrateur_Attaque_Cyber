@@ -210,18 +210,13 @@ function displayPlaylists(){
                             } else {
                                 alert("Erreur lors de la création de la playlist: " + response.message);
                             }
-                        },
-                        error: function (xhr){
-                            console.error("Erreur AJAX :", xhr.responseText);
                         }
                     });
                 }
             });
             playlistsElement.append(createPlaylistElement);
-        } else {
-            console.error('Erreur lors de la récupération des playlists');
         }
-    }).fail(error => console.error("Erreur lors de la récupération des playlists :", error));
+    });
 }
 
 // Delete a song from the playlist
@@ -241,9 +236,6 @@ function deleteSongFromPlaylist(songId, playlistId, songElement){
             } else {
                 alert("Erreur : " + response.message);
             }
-        },
-        error: function(error){
-            console.error("Erreur AJAX :", error);
         }
     });
 }

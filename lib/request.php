@@ -1,5 +1,6 @@
 <?php
     ob_start();
+    session_name('session');
     session_start();
 
     include 'database.php';
@@ -417,7 +418,6 @@
 
     // Function to get the username
     if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["action"]) && $_GET["action"] === "getUsername"){
-        error_log("mail: " . $_GET["mail"]);
         if (isset($_GET["mail"])){
             $mail = $_GET["mail"];
             $result = dbGetUserInfos($db, $mail);
